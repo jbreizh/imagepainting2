@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>IMAGEPAINTING</title>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="css/imagepainting.css">
+</head>
+
+<body class="b_black">
+	<table class="table">
+		<colgroup>
+			<col span="1" style="width: 20%;">
+			<col span="1" style="width: 20%;">
+			<col span="1" style="width: 20%;">
+			<col span="1" style="width: 20%;">
+			<col span="1" style="width: 20%;">
+		</colgroup>
+		<tbody>
+			<tr>
+				<td colspan=5><img class="title" src="title.png"></td>
+			</tr>
+			<tr>
+				<td colspan=5><h2 class="status" id="textStatus"> WELCOME </h2></td>
+			</tr>
+			<tr class="top bottom b_grey">
+				<td colspan=4><div class="div left black">ACTIONS</div></td>
+				<td><button class="button noborder" id="collapseActions">-</button></td>
+			</tr>
+			<tr class="actions">
+				<td><div class="div left" >Select:</div></td>
+				<td colspan=4><select  class="input" id="selectImage"><option value=""></option></select></td>
+			</tr>
+			<tr class="actions">
+				<td><div class="div left" >Action:</div></td>
+				<td colspan=2><button class="button b_blue" id="btnDownload">Download</button></td>
+				<td colspan=2><button class="button b_red" id="btnDelete">Delete</button></td>
+			</tr>
+			<tr class="actions">
+				<td><div class="div left" >Start:</div></td>
+				<td colspan=3><input class="input" type="range" id="sliderStart"></td>
+				<td><div class="div right" id="textStart"></div></td>
+			</tr>
+			<tr class="actions">
+				<td></td>
+				<td colspan=3><canvas class="canvas" id="canvasImage" width="0px" height="0px"></canvas></td>
+				<td></td> 
+			</tr>
+			<tr class="actions">
+				<td><div class="div left">Stop:</div></td>
+				<td colspan=3><input class="input" type="range" id="sliderStop"></td>
+				<td><div class="div right" id="textStop"></div></td>
+			</tr>
+            <tr class="actions">
+				<td><div class="div left" >Duration:</div></td>
+				<td colspan=3><input class="input" type="range" id="sliderDuration"></td>
+				<td><div class="div right" id="textDuration"></div></td>
+			</tr>
+			<tr class="actions">
+				<td><div class="div left">Action:</div></td>
+				<td colspan=2><button class="button b_blue" id="btnBurn">Burn</button></td>
+				<td colspan=2><button class="button b_orange" id="btnLight">Light</button></td>
+			</tr>
+			<tr class="actions">
+				<td></td>
+				<td colspan=2><button class="button b_green" id="btnPlay">Play</button></td>
+				<td colspan=2><button class="button b_red" id="btnStop">Stop</button></td>
+			</tr>
+			<tr class="top bottom b_grey">
+				<td colspan=4><div class="div left black">SETTINGS</div></td>
+				<td><button class="button noborder" id="collapseSettings">+</button></td>
+			</tr>
+			<tr class="settings hide-me">
+				<td><div class="div left">Delay:</div></td>
+				<td colspan=3><input class="input" type="range" min="0" max="255" id="sliderDelay"/></td>
+				<td><div class="div right" id="textDelay"></div></td>
+			</tr>
+			<tr class="settings hide-me">
+				<td><div class="div left">Brightness:</div></td>
+				<td colspan=3><input class="input" type="range" min="0" max="255" id="sliderBrightness"/></td>
+				<td><div class="div right" id="textBrightness"></div></td>
+			</tr>
+			<tr class="settings hide-me">
+				<td><div class="div left">Countdown:</div></td>
+				<td colspan=3><input class="input" type="range" min="0" max="15000" id="sliderCountdown"/></td>
+				<td><div class="div right" id="textCountdown"></div></td>
+			</tr>
+			<tr class="settings hide-me">
+				<td></td>
+				<td><div class="div left">Countdown?</div></td>
+				<td><input type="checkbox" id="ckCountdown"/></td>
+				<td></td>
+				<td></td>
+			</tr>
+			<tr class="settings hide-me">
+				<td><div class="div left">Repeat:</div></td>
+				<td colspan=3><input class="input" type="range" min="0" max="25" id="sliderRepeat"/></td>
+				<td><div class="div right" id="textRepeat"></div></td>
+			</tr>
+			<tr class="settings hide-me">
+				<td></td>
+				<td><div class="div left">Invert?</div></td>
+				<td><input type="checkbox" id="ckInvert"/></td>
+				<td></td>
+				<td></td>
+			</tr>
+			<tr class="settings hide-me">
+				<td></td>
+				<td><div class="div left">Repeat?</div></td>
+				<td><input type="checkbox" id="ckRepeat"/></td>
+				<td></td>
+				<td></td>
+			</tr>
+			<tr class="settings hide-me">
+				<td></td>
+				<td><div class="div left">Bounce?</div></td>
+				<td><input type="checkbox" id="ckBounce"/></td>
+				<td></td>
+				<td></td>
+			</tr>
+			<tr class="settings hide-me">
+				<td><div class="div left">Pause:</div></td>
+				<td colspan=3><input class="input" type="range" min="0" max="25" id="sliderPause"/></td>
+				<td><div class="div right" id="textPause"></div></td>
+			</tr>
+			<tr class="settings hide-me">
+				<td></td>
+				<td><div class="div left">Pause?</div></td>
+				<td><input type="checkbox" id="ckPause"/></td>
+				<td></td>
+				<td></td>
+			</tr>
+			<tr class="settings hide-me">
+				<td></td>
+				<td><div class="div left">Cut?</div></td>
+				<td><input type="checkbox" id="ckCut"/></td>
+				<td></td>
+				<td></td>
+			</tr>
+			<tr class="settings hide-me">
+				<td><div class="div left">Color:</div></td>
+				<td colspan=3><input class="input" type="color" id="pickerColor"/></td>
+				<td></td>
+			</tr>
+			<tr class="settings hide-me">
+				<td></td>
+				<td><div class="div left">EndOff?</div></td>
+				<td><input type="checkbox" id="ckEndOff"/></td>
+				<td></td>
+				<td></td>
+			</tr>
+			<tr class="settings hide-me">
+				<td></td>
+				<td><div class="div left">EndColor?</div></td>
+				<td><input type="checkbox" id="ckEndColor"/></td>
+				<td></td>
+				<td></td>
+			</tr>
+			<tr class="settings hide-me">
+				<td><div class="div left">Action:</div></td>
+				<td colspan=2><button class="button b_green" id="btnSave">Save</button></td>
+				<td colspan=2><button class="button b_red" id="btnRestore">Restore</button></td>
+			</tr>
+			<tr class="top bottom b_grey">
+				<td colspan=4><div class="div left black">UPLOAD</div></td>
+				<td><button class="button noborder" id="collapseUpload">+</button></td>
+			</tr>
+			<tr class="upload hide-me">
+				<td><div class="div left">Select:</div></td>
+				<td colspan=4><input class="input white" id="selectConvert" type="file" /></td>
+			</tr>
+			<tr class="upload hide-me"> 
+				<td colspan=5><canvas class="canvas" id="canvasConvert" width="0px" height="0px"></canvas></td> 
+			</tr>
+			<tr class="upload hide-me">
+				<td><div class="div left" >Gamma:</div></td>
+				<td colspan=4>
+					<select  class="input" id="selectGamma">
+						<option value="1.0">1.0</option>
+						<option value="1.3">1.3</option>
+						<option value="1.6">1.6</option>
+						<option value="1.9">1.9</option>
+						<option value="2.2">2.2</option>
+						<option value="2.5" selected="selected">2.5 </option>
+						<option value="2.8">2.8</option>
+						<option value="3.1">3.1</option>
+					</select>
+				</td>
+			</tr>
+			<tr class="upload hide-me">
+				<td><div class="div left">Orientation:</div></td>
+				<td><div class="div left">BottomToTop?</div></td>
+				<td><input type="checkbox" id="ckBottomTop"/></td>
+				<td></td>
+				<td></td>
+			</tr>
+			<tr class="upload hide-me">
+				<td><div class="div left">Pixels:</div></td>
+				<td colspan=3><input class="input" type="range" id="sliderPixels"/></td>
+				<td><div class="div right" id="textPixels"></div></td>
+			</tr>
+			<tr class="upload hide-me">
+				<td><div class="div left">LineCut:</div></td>
+				<td colspan=3><input class="input" type="range" id="sliderLineCut"/></td>
+				<td><div class="div right" id="textLineCut"></div></td>
+			</tr>
+			<tr class="upload hide-me">
+				<td><div class="div left" >Action:</div></td>
+				<td colspan=4><button class="button b_blue" id="btnUploadOriginal">Upload Original</button></td>
+			</tr>
+			<tr class="upload hide-me">
+				<td></td>
+				<td colspan=4><button class="button b_green" id="btnUploadConvert">Upload Convert</button></td>
+			</tr>
+            <tr class="upload hide-me">
+				<td></td>
+				<td colspan=4><button class="button b_orange" id="btnDownloadConvert">Download Convert</button></td>
+			</tr>
+			<tr class="top bottom b_grey">
+				<td colspan=4><div class="div left black">SYSTEM</div></td>
+				<td><button class="button noborder" id="collapseSystem">+</button></td>
+			</tr>
+            <tr class="system hide-me">
+				<td><div class="div left">Led:</div></td>
+				<td colspan=3></td>
+				<td><div class="div right" id="textLedNumber"></td> 
+			</tr>
+			<tr class="system hide-me">
+				<td><div class="div left">Filesystem:</div></td>
+				<td colspan=3><canvas class="canvas" id="canvasSystem" width="300px" height="300px"></canvas></td>
+				<td></td> 
+			</tr>
+			<tr class="system hide-me">
+				<td></td>
+				<td colspan=3><div id="canvasLegend"></div></canvas></td>
+				<td></td> 
+			</tr>
+		</tbody>
+	</table>
+</body>
+<script src="js/pieChart.js"></script>
+<script src="js/canvastobmp.js"></script>
+<script src="js/imagetocanvas.js"></script>
+<script src="js/imagepainting.js"></script>
+</html>
