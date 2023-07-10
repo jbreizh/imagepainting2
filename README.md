@@ -249,11 +249,3 @@ ESP8266 is not powerful enough to handle compress format as jpeg, png... etc. So
 * The width of your Bitmap has to be the same than the length of your LED strip or your Bitmap will be crop.
 
 Hopefully, the use of the app build in convert tool free you of all this consideration.
-
-## Bitmap Pack
-
-I have put you resize version of the original Bitmap pack from [pixelstick](http://www.thepixelstick.com/index.html). This Bitmap pack come originaly at 200px wide and i resize it at 60px and 144px to fit standard LED strip.
-
-![help8](https://user-images.githubusercontent.com/2498942/69486401-9e561880-0e4b-11ea-8fd5-3fc7776f90fc.png)
-
-Thanks [pixelstick](http://www.thepixelstick.com/index.html) for this nice Bitmap pack.
