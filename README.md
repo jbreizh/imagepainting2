@@ -1,6 +1,8 @@
-# ImagePainting
+# ImagePainting2
 
-Yet another project on LightPainting .... BUT WAIT !!!
+Update of ImagePainting, but i want to keep the first version. So here is the second version.
+Basically the same, the main difference is that i give up the smartphone app. Phonegap is dead (so no easy way to compile it for android) and iOS is so closed that i can't make an app without paying....
+Now the frontend is directly store and serve by the ESP8266 as a webpage. It work for any device with a decent browser (computer, android and iOS....) 
 
 ## Introduction
 
@@ -50,9 +52,9 @@ I have test with success Dotstars (aka APA102) and Neopixels (aka WS2812B). I ha
 #define BUTTON      // Decomment this to use BUTTON
 ```
 
-The 2 push buttons are optionals. ImagePainting always work from the webpage and you still need your smartphone to upload Bitmap or tweak parameters. However, it's more convenient to launch your animation with a button than clicking on a touch screen.
+The 2 push buttons are optionals. ImagePainting2 always work from the webpage and you still need your smartphone to upload Bitmap or tweak parameters. However, it's more convenient to launch your animation with a button than clicking on a touch screen.
 
-By defaut, ImagePainting handle the 2 push buttons (BTNA and BTNB) like this :
+By default, ImagePainting2 handle the 2 push buttons (BTNA and BTNB) like this :
 
 * **BTNA :** "short click" --> Play/Pause and "long click" --> Burn
 
@@ -93,11 +95,11 @@ Take care of the polarity to avoid drama. Each LED need around 50mA full brightn
 //#define STA       // Decomment this to use STA mode instead of AP
 ```
 
-ImagePainting can operate in two separate mode :
+ImagePainting2 can operate in two separate mode :
 
 * **STA :** As STAtion. In this case, the ESP8266 will connect to your router and be another client of your network. You have to look at the serial monitor of the Arduino IDE during the boot of the ESP8266 to find his IP address. This mode is mainly not interesting, except for debug.
 
-* **AP :** As Access Point. In this case, the ESP8266 will provide his own wifi network and you will connect directly on him. To keep it simple, there is no password and the DNS will route you directly on the right IP. But if there is a problem, go to http://192.168.1.1 to reach your ESP8266. This is the default mode of ImagePainting as it is very unlikely to have a wifi router everywhere.
+* **AP :** As Access Point. In this case, the ESP8266 will provide his own wifi network and you will connect directly on him. To keep it simple, there is no password and the DNS will route you directly on the right IP. But if there is a problem, go to http://192.168.1.1 to reach your ESP8266. This is the default mode of ImagePainting2 as it is very unlikely to have a wifi router everywhere.
 
 ```
 // WIFI --------------
@@ -140,17 +142,20 @@ You need to install the following board/tool/library :
 
 * Tweak the ESP8266 to max out its possibility. For exemple, for the Wemos D1, the CPU can be set to 160Mhz and the FS to 3MB.
 
-* Flash ImagePainting from the Arduino IDE.
+* Flash ImagePainting2 from the Arduino IDE.
 
 * Upload the data by clicking to "ESP8266 LittleFS Data Upload". 
 
-### Install the app
+## Use ImagePainting2
 
-The compile app (currently for android) can be find in /android/release. This app is compile for AP use as the http://192.168.1.1 is hardcoded. If you need to permanently change this IP (or you don't trust me), you can compile the source with [PhoneGap](https://phonegap.com/).
+There is two frontend call "Simple" and "Smartphone" that can be find inside /FrontEnd :
 
-## Use ImagePainting
+* **Simple :** This is the default frontend as it take less memory space on the ESP8266.
+* **Smartphone :** This is nicer frontend for smartphone screen that use [Onsen Ui](https://onsen.io/) but it take more memory space on the ESP8266.
 
-I will explain the use from the android app as it is the recommand way to use ImagePainting. I consider the webpage as legacy and i strongly recommand the app. You can delete index.html and title.png from the data file, if you plan to use the app.
+To change the frontend, simply copy the content of "/FrontEnd/Simple" or "/FrontEnd/Smartphone" inside "/ESP8266/imagePainting2/data" and upload the data by clicking to "ESP8266 LittleFS Data Upload". 
+
+I will explain the use from the fontend call "Simple" as it is the default frontend of ImagePainting2.
 
 ### Actions screen
 
@@ -232,7 +237,7 @@ I will explain the use from the android app as it is the recommand way to use Im
 
 ## Case scenario
 
-I try my best to show you some possibility of ImagePainting.
+I try my best to show you some possibility of ImagePainting2.
 
 ![help1](https://user-images.githubusercontent.com/2498942/69259671-e57ba980-0bbe-11ea-8891-45a0cb5b84b9.png)
 
@@ -245,7 +250,7 @@ ESP8266 is not powerful enough to handle compress format as jpeg, png... etc. So
 ![bitmapExplanation](https://user-images.githubusercontent.com/2498942/68552286-a3f83b00-0415-11ea-8ec8-e8d4f2450843.jpg)
 
 * Only Bitmap with 24 bits per pixel (or 8 bits per color) are supported. If there is a problem with such a Bitmap, try to save it in bmp3 format.
-* Your Bitmap must be rotate by 90°. ImagePainting will display Bitmap line by line from the left to the right. Also don't be fool by the render in the webpage, ImagePainting rotate your Bitmap back.
+* Your Bitmap must be rotate by 90°. ImagePainting2 will display Bitmap line by line from the left to the right.
 * The width of your Bitmap has to be the same than the length of your LED strip or your Bitmap will be crop.
 
-Hopefully, the use of the app build in convert tool free you of all this consideration.
+Hopefully, the use of the frontend build in convert tool free you of all this consideration.
