@@ -23,8 +23,8 @@ function toggle(e) {
 }
 
 // Variable
-var address = "http://192.168.1.1";
-//var address = "http://192.168.6.83";
+var address = "";
+//var address = "http://192.168.6.55";
 var remainingBytes;
 
 //--------------------------------------------------

@@ -18,8 +18,8 @@ window.fn.load = function(page) {
 document.addEventListener('init', function(event) {
 
 	// Variable
-	//var address = "http://192.168.1.1";
-	var address = "http://192.168.6.83";
+	var address = "";
+	//var address = "http://192.168.6.83";
 	var remainingBytes;
 
 	//--------------------------------------------------

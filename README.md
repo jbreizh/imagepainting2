@@ -2,7 +2,8 @@
 
 Update of ImagePainting, but i want to keep the first version. So here is the second version.
 Basically the same, the main difference is that i give up the smartphone app. Phonegap is dead (so no easy way to compile it for android) and iOS is so closed that i can't make an app without paying....
-Now the frontend is directly store and serve by the ESP8266 as a webpage. It work for any device with a decent browser (computer, android and iOS....) 
+Now the frontend is directly store and serve by the ESP8266 as a webpage. It work for any device with a decent browser (computer, android and iOS....).
+Everything seems to work with the last board/tool/library upgrade (july 2023).
 
 ## Introduction
 
@@ -150,22 +151,24 @@ You need to install the following board/tool/library :
 
 There is two frontend call "Simple" and "Smartphone" that can be find inside /FrontEnd :
 
-* **Simple :** This is the default frontend as it take less memory space on the ESP8266.
-* **Smartphone :** This is nicer frontend for smartphone screen that use [Onsen Ui](https://onsen.io/) but it take more memory space on the ESP8266.
+* **Simple :** This is the default frontend as it take less memory space on the ESP8266 (60ko/4Mo).
+* **Smartphone :** This is nicer frontend for smartphone screen that use [Onsen Ui](https://onsen.io/) but it take more memory space on the ESP8266 (500ko/4Mo).
 
 To change the frontend, simply copy the content of "/FrontEnd/Simple" or "/FrontEnd/Smartphone" inside "/ESP8266/imagePainting2/data" and upload the data by clicking to "ESP8266 LittleFS Data Upload". 
 
-I will explain the use from the fontend call "Simple" as it is the default frontend of ImagePainting2.
-
 ### Actions screen
 
-![action](https://user-images.githubusercontent.com/2498942/71197104-300d4600-2291-11ea-9ccc-bb8528c9db1d.png)
+![actions](https://github.com/jbreizh/imagepainting2/assets/2498942/1c79e7a2-3959-45e6-920f-e6c12a6b9c20)
 
 * **File :** Select a Bitmap on the ESP8266 flash memory.
-  * **Start :** Select the beginning of your animation
-  * **Stop :** Select the end of your animation
+
+* **Actions :**
+  * **Download :** Download selected file to your smartphone.
+  * **Delete :** Delete selected file from ESP8266. "welcome.bmp" can't be erase as system files.
 
 * **Options :**
+  * **Start :** Select the beginning of your animation
+  * **Stop :** Select the end of your animation
   * **Duration :** Show the estimated duration of the animation. If you change the duration, it will change the delay to fit your need.
 
 * **Actions :**
@@ -176,7 +179,7 @@ I will explain the use from the fontend call "Simple" as it is the default front
 
 ### Settings screen
 
-![settings](https://user-images.githubusercontent.com/2498942/71197106-30a5dc80-2291-11ea-9fb8-94fa9e1a0d1c.png)
+![settings](https://github.com/jbreizh/imagepainting2/assets/2498942/ab65d2e2-8958-4a22-beeb-a6b0e04fa8f0)
 
 * **Delay :** Time between two frames in ms.
 * **Brightness :** Brightness of the LED Strip. Value possible 0 (black) to 255 (full).
@@ -203,7 +206,7 @@ I will explain the use from the fontend call "Simple" as it is the default front
 
 ### Upload screen
 
-![upload](https://user-images.githubusercontent.com/2498942/71197108-313e7300-2291-11ea-9ac7-f169fd2a0623.png)
+![upload](https://github.com/jbreizh/imagepainting2/assets/2498942/99c6d391-6c76-46f4-933f-0ce9148aa99f)
 
 * **File :** Select a file on your smartphone. Preview is for image only.
 
@@ -218,26 +221,16 @@ I will explain the use from the fontend call "Simple" as it is the default front
   * **Upload Convert :** Convert and Upload selected image file to the ESP8266. 
   * **Download Convert :** Convert and Download selected image file to your smartphone.
 
-### Download screen
-
-![download](https://user-images.githubusercontent.com/2498942/71197105-30a5dc80-2291-11ea-9fb0-32700abd8e69.png)
-
-* **File :** Select a file on the ESP8266 flash memory. Preview is for bitmap only.
-* **Actions :**
-  * **Download :** Download selected file to your smartphone.
-  * **Delete :** Delete selected file from ESP8266. "welcome.bmp" can't be erase as system files.
-
 ### System screen
 
-![system](https://user-images.githubusercontent.com/2498942/71197107-313e7300-2291-11ea-9b06-2613c42608b5.png)
+![system](https://github.com/jbreizh/imagepainting2/assets/2498942/6f3cd44d-44c6-4525-8a29-5bae33b7230f)
 
-* **ESP8266 FILSYSTEM :** Memory use on the ESP8266.
-* **ESP8266 ADDRESS :** Address of the ESP8266.
-* **APPLICATION THEME :** Choose between Dark or Light theme.
+* **Led :** Number of led attach to the ESP8266.
+* **filesystem :** Memory use on the ESP8266.
 
 ## Case scenario
 
-I try my best to show you some possibility of ImagePainting2.
+I try my best to show you some possibility of ImagePainting2 using different settings :
 
 ![help1](https://user-images.githubusercontent.com/2498942/69259671-e57ba980-0bbe-11ea-8891-45a0cb5b84b9.png)
 
@@ -253,4 +246,4 @@ ESP8266 is not powerful enough to handle compress format as jpeg, png... etc. So
 * Your Bitmap must be rotate by 90°. ImagePainting2 will display Bitmap line by line from the left to the right.
 * The width of your Bitmap has to be the same than the length of your LED strip or your Bitmap will be crop.
 
-Hopefully, the use of the frontend build in convert tool free you of all this consideration.
+Hopefully, the use of the frontend build in upload tool free you of all this consideration.
