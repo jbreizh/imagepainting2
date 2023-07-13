@@ -328,6 +328,7 @@ String systemRead()
   LittleFS.info(fs_info);
   jsonDoc["usedBytes"] = fs_info.usedBytes;
   jsonDoc["totalBytes"] = fs_info.totalBytes;
+  jsonDoc["freeBytes"] = fs_info.totalBytes-fs_info.usedBytes;
   jsonDoc["numPixels"] = NUMPIXELS;
 
   // Convert json document to String and return it

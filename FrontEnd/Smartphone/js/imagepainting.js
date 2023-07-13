@@ -19,22 +19,21 @@ document.addEventListener('init', function(event) {
 
 	// Variable
 	var address = "";
-	//var address = "http://192.168.6.83";
-	var remainingBytes;
+	//var address = "http://192.168.6.55";
+	var imgImage = new Image;
+	var FILELIST = new Object();
+	var BITMAP = new Object();
+	var PARAMETER = new Object();
+	var SYSTEM = new Object();
 
 	//--------------------------------------------------
 	function updateStatus(message, color)
 	{
-		textStatus.innerHTML = message;
-		textStatus.style.color = color;
-		if (color == 'red')
-			iconStatus.setAttribute('icon', 'myStatusRed');
-
-		if (color == 'orange')
-			iconStatus.setAttribute('icon', 'myStatusOrange');
-
-		if (color == 'green')
-			iconStatus.setAttribute('icon', 'myStatusGreen');
+		if (document.getElementById("textStatus") != null) document.getElementById("textStatus").innerHTML = message;
+		if (document.getElementById("textStatus") != null) document.getElementById("textStatus").style.color = color;
+		if (document.getElementById("iconStatus") != null && color == 'red') document.getElementById("iconStatus").setAttribute('icon', 'myStatusRed');
+		if (document.getElementById("iconStatus") != null && color == 'orange') document.getElementById("iconStatus").setAttribute('icon', 'myStatusOrange');
+		if (document.getElementById("iconStatus") != null && color == 'green') document.getElementById("iconStatus").setAttribute('icon', 'myStatusGreen');
 	}
 
 	//--------------------------------------------------
@@ -77,6 +76,37 @@ document.addEventListener('init', function(event) {
 			trimName =  baseName+"."+newExt;
 		}
 		return trimName;
+	}
+	
+	//--------------------------------------------------
+	function download(url,name)
+	{
+		updateStatus("DOWNLOAD SUCCESS", "green");
+		// create a link
+		var a  = document.createElement('a');
+		// create a link
+		a.href = url;
+		// set the name of the link
+		a.download = name;
+		// download the link
+		a.click();
+	}
+
+	//--------------------------------------------------
+	function upload(blob,name)
+	{
+		// too big? display an error
+		if (blob.size > SYSTEM["freeBytes"])
+		{
+			updateStatus("UPLOAD ERROR : NOT ENOUGH SPACE", "red");
+		}
+		// no problem? send the file
+		else
+		{
+			var form = new FormData();
+			form.append('file',blob,name);
+			requestFileUpload(form);
+		}
 	}
 
 	//--------------------------------------------------
@@ -125,6 +155,54 @@ document.addEventListener('init', function(event) {
 		xhr.open("GET", address+"/bitmapRead", true);
 		xhr.send(null);
 	}
+	
+		//--------------------------------------------------
+	function setBitmap(jsonString)
+	{
+		BITMAP = JSON.parse(jsonString);
+		// set actions values
+		if (document.getElementById("sliderStart") != null)
+		{
+			document.getElementById("sliderStart").setAttribute("min", BITMAP["indexMin"]);
+			document.getElementById("sliderStart").setAttribute("max", BITMAP["indexMax"]);
+			document.getElementById("sliderStart").value = BITMAP["indexStart"];
+			if (document.getElementById("sliderStart") != null) document.getElementById("textStart").innerHTML = document.getElementById("sliderStart").value + "px";
+		}
+		if (document.getElementById("sliderStop") != null)
+		{
+			document.getElementById("sliderStop").setAttribute("min", BITMAP["indexMin"]);
+			document.getElementById("sliderStop").setAttribute("max", BITMAP["indexMax"]);
+			document.getElementById("sliderStop").value = BITMAP["indexStop"];
+			if (document.getElementById("sliderStop") != null) document.getElementById("textStop").innerHTML = document.getElementById("sliderStop").value + "px";
+		}
+		if (document.getElementById("sliderDuration") != null)
+		{
+			document.getElementById("sliderDuration").setAttribute("max",(BITMAP["indexStop"]-BITMAP["indexStart"])*255);
+			document.getElementById("sliderDuration").value = (BITMAP["indexStop"]-BITMAP["indexStart"])*PARAMETER["delay"];
+			if (document.getElementById("textDuration") != null) document.getElementById("textDuration").innerHTML = document.getElementById("sliderDuration").value + "ms";
+		}
+		if (document.getElementById("selectImage") != null) document.getElementById("selectImage").value = BITMAP["bmpPath"];
+		
+		if(BITMAP["isbmpload"])
+		{
+			if (document.getElementById("sliderStart") != null) document.getElementById("sliderStart").disabled = false;
+			if (document.getElementById("sliderStop") != null) document.getElementById("sliderStop").disabled = false;
+			if (document.getElementById("sliderDuration") != null) document.getElementById("sliderDuration").disabled = false;
+			if (document.getElementById("btnBurn") != null) document.getElementById("btnBurn").disabled = false;
+			if (document.getElementById("btnPlay") != null) document.getElementById("btnPlay").disabled = false;
+			imgImage.src= address + "/" + BITMAP["bmpPath"];
+		}
+		// it isn't a bitmap
+		else
+		{
+			if (document.getElementById("sliderStart") != null) document.getElementById("sliderStart").disabled = true;
+			if (document.getElementById("sliderStop") != null) document.getElementById("sliderStop").disabled = true;
+			if (document.getElementById("sliderDuration") != null) document.getElementById("sliderDuration").disabled = true;
+			if (document.getElementById("btnBurn") != null) document.getElementById("btnBurn").disabled = true;
+			if (document.getElementById("btnPlay") != null) document.getElementById("btnPlay").disabled = true;
+			if (document.getElementById("canvasImage") != null) drawError(document.getElementById("canvasImage"), "Not Load");
+		}	
+	} 
 
 	//--------------------------------------------------
 	function requestBitmapWrite()
@@ -152,6 +230,17 @@ document.addEventListener('init', function(event) {
 		xhr.setRequestHeader('Content-type', 'application/json');
 		xhr.send(getBitmap());
 	}
+	
+	//--------------------------------------------------
+	function getBitmap()
+	{
+	// get actions values
+		if (document.getElementById("sliderStart") != null) BITMAP.indexStart = document.getElementById("sliderStart").value;
+		if (document.getElementById("sliderStop") != null) BITMAP.indexStop = document.getElementById("sliderStop").value;
+		if (document.getElementById("selectImage") != null) BITMAP.bmpPath = document.getElementById("selectImage").value;
+	// convert json to string
+		return JSON.stringify(BITMAP);
+	}
 
 	//--------------------------------------------------
 	function requestParameterRead()
@@ -173,6 +262,40 @@ document.addEventListener('init', function(event) {
 		xhr.overrideMimeType("application/json");
 		xhr.open("GET", address+"/parameterRead", true);
 		xhr.send(null);
+	}
+	
+	//--------------------------------------------------
+	function setParameter(jsonString)
+	{
+		PARAMETER = JSON.parse(jsonString);
+		// set settings values
+		if (document.getElementById("sliderDuration") != null) document.getElementById("sliderDuration").value = (BITMAP["indexStop"]-BITMAP["indexStart"])*PARAMETER["delay"];
+		if (document.getElementById("textDuration") != null) document.getElementById("textDuration").innerHTML = (BITMAP["indexStop"]-BITMAP["indexStart"])*PARAMETER["delay"] + "ms";
+		if (document.getElementById("sliderDelay") != null) document.getElementById("sliderDelay").value = PARAMETER["delay"];
+		if (document.getElementById("textDelay") != null) document.getElementById("textDelay").innerHTML = PARAMETER["delay"] + "ms";
+		if (document.getElementById("sliderBrightness") != null) document.getElementById("sliderBrightness").value = PARAMETER["brightness"];
+		if (document.getElementById("textBrightness") != null) document.getElementById("textBrightness").innerHTML = PARAMETER["brightness"] + "%";
+		if (document.getElementById("sliderCountdown") != null) document.getElementById("sliderCountdown").value = PARAMETER["countdown"];
+		if (document.getElementById("textCountdown") != null) document.getElementById("textCountdown").innerHTML = PARAMETER["countdown"] + "ms";
+		if (document.getElementById("ckCountdown") != null) document.getElementById("ckCountdown").checked  = PARAMETER["iscountdown"];
+		if (document.getElementById("sliderRepeat") != null) document.getElementById("sliderRepeat").value = PARAMETER["repeat"];
+		if (document.getElementById("textRepeat") != null) document.getElementById("textRepeat").innerHTML = PARAMETER["repeat"] + "x";
+		if (document.getElementById("ckInvert") != null) document.getElementById("ckInvert").checked  = PARAMETER["isinvert"];
+		if (document.getElementById("ckRepeat") != null) document.getElementById("ckRepeat").checked  = PARAMETER["isrepeat"];
+		if (document.getElementById("ckBounce") != null) document.getElementById("ckBounce").checked  = PARAMETER["isbounce"];
+		if (document.getElementById("ckRepeat") != null && document.getElementById("ckBounce") != null) updateCheckbox(document.getElementById("ckRepeat"),document.getElementById("ckBounce"));
+		if (document.getElementById("ckBounce") != null && document.getElementById("ckRepeat") != null) updateCheckbox(document.getElementById("ckBounce"),document.getElementById("ckRepeat"));
+		if (document.getElementById("sliderPause") != null) document.getElementById("sliderPause").value = PARAMETER["pause"];
+		if (document.getElementById("textPause") != null) document.getElementById("textPause").innerHTML = PARAMETER["pause"] + "px";
+		if (document.getElementById("ckPause") != null) document.getElementById("ckPause").checked  = PARAMETER["ispause"];
+		if (document.getElementById("ckCut") != null) document.getElementById("ckCut").checked  = PARAMETER["iscut"];
+		if (document.getElementById("ckPause") != null && document.getElementById("ckCut") != null) updateCheckbox(document.getElementById("ckPause"),document.getElementById("ckCut"));
+		if (document.getElementById("ckCut") != null && document.getElementById("ckPause") != null) updateCheckbox(document.getElementById("ckCut"),document.getElementById("ckPause"));
+		if (document.getElementById("pickerColor") != null) document.getElementById("pickerColor").value = PARAMETER["color"];
+		if (document.getElementById("ckEndOff") != null) document.getElementById("ckEndOff").checked  = PARAMETER["isendoff"];
+		if (document.getElementById("ckEndColor") != null) document.getElementById("ckEndColor").checked  = PARAMETER["isendcolor"];
+		if (document.getElementById("ckEndOff") != null && document.getElementById("ckEndColor") != null) updateCheckbox(document.getElementById("ckEndOff"),document.getElementById("ckEndColor"));
+		if (document.getElementById("ckEndColor") != null && document.getElementById("ckEndOff") != null) updateCheckbox(document.getElementById("ckEndColor"),document.getElementById("ckEndOff"));
 	}
 
 	//--------------------------------------------------
@@ -200,6 +323,28 @@ document.addEventListener('init', function(event) {
 		xhr.open("POST", address+"/parameterWrite", true);
 		xhr.setRequestHeader('Content-type', 'application/json');
 		xhr.send(getParameter());
+	}
+	
+	//--------------------------------------------------
+	function getParameter()
+	{
+		// get PARAMETER values
+		if (document.getElementById("sliderDelay") != null) PARAMETER.delay = document.getElementById("sliderDelay").value;
+		if (document.getElementById("sliderBrightness") != null) PARAMETER.brightness = document.getElementById("sliderBrightness").value;
+		if (document.getElementById("sliderCountdown") != null) PARAMETER.countdown = document.getElementById("sliderCountdown").value;
+		if (document.getElementById("ckCountdown") != null) PARAMETER.iscountdown = document.getElementById("ckCountdown").checked;
+		if (document.getElementById("sliderRepeat") != null) PARAMETER.repeat = document.getElementById("sliderRepeat").value;
+		if (document.getElementById("ckInvert") != null) PARAMETER.isinvert = document.getElementById("ckInvert").checked;
+		if (document.getElementById("ckRepeat") != null) PARAMETER.isrepeat = document.getElementById("ckRepeat").checked;
+		if (document.getElementById("ckBounce") != null) PARAMETER.isbounce = document.getElementById("ckBounce").checked;
+		if (document.getElementById("sliderPause") != null) PARAMETER.pause = document.getElementById("sliderPause").value;
+		if (document.getElementById("ckPause") != null) PARAMETER.ispause = document.getElementById("ckPause").checked;
+		if (document.getElementById("ckCut") != null) PARAMETER.iscut = document.getElementById("ckCut").checked;
+		if (document.getElementById("pickerColor") != null) PARAMETER.color = document.getElementById("pickerColor").value;
+		if (document.getElementById("ckEndOff") != null) PARAMETER.isendoff = document.getElementById("ckEndOff").checked;
+		if (document.getElementById("ckEndColor") != null) PARAMETER.isendcolor = document.getElementById("ckEndColor").checked;
+		// convert json to string
+		return JSON.stringify(PARAMETER);
 	}
 
 	//--------------------------------------------------
@@ -274,6 +419,42 @@ document.addEventListener('init', function(event) {
 		xhr.open("GET", address+"/systemRead", true);
 		xhr.send(null);
 	}
+	
+		//--------------------------------------------------
+	function setSystem(jsonString)
+	{
+		SYSTEM = JSON.parse(jsonString);
+		// set parameters values
+		if (document.getElementById("sliderPixels") !=  null)
+		{
+			document.getElementById("sliderPixels").setAttribute("max",SYSTEM["numPixels"]);
+			document.getElementById("sliderPixels").value = SYSTEM["numPixels"];
+			if (document.getElementById("textPixels") != null) document.getElementById("textPixels").innerHTML = document.getElementById("sliderPixels").value + "px";
+		}
+		//
+		if (document.getElementById("sliderLineCut") != null)
+		{
+			document.getElementById("sliderLineCut").setAttribute("max",25);
+			document.getElementById("sliderLineCut").value = 0;
+			if (document.getElementById("textLineCut") != null) document.getElementById("textLineCut").innerHTML = document.getElementById("sliderLineCut").value + "px";
+		}
+		//
+		if (document.getElementById("textLedNumber") != null) document.getElementById("textLedNumber").innerHTML = SYSTEM["numPixels"] + "px";
+		// set chart parameters
+		if (document.getElementById("canvasSystem") != null && document.getElementById("canvasLegend") != null)
+		{
+			var myChart = new Piechart(
+			{
+				canvas:canvasSystem,
+				data:{"Used": SYSTEM["usedBytes"],"Free": SYSTEM["freeBytes"]},
+				colors:["red","green"],
+				legend:canvasLegend
+			}
+			);
+			// draw the chart
+			myChart.draw();
+		}
+	}
 
 	//--------------------------------------------------
 	function requestFileList()
@@ -296,120 +477,120 @@ document.addEventListener('init', function(event) {
 		xhr.open("GET", address + "/list", true);
 		xhr.send(null);
 	}
+	
+	//--------------------------------------------------
+	function setFileList(jsonString)
+	{
+		FILELIST = JSON.parse(jsonString);
+		if (document.getElementById("selectImage") !=  null)
+		{
+			document.getElementById("selectImage").options.length = FILELIST.fileList.length;
+			
+			for (var i = 0; i < FILELIST.fileList.length; i++)
+			{
+				document.getElementById("selectImage").options[i].value = FILELIST.fileList[i];
+				document.getElementById("selectImage").options[i].text = FILELIST.fileList[i]; 
+			}
+		}
+	}
 
 //--------------------------------------------------
-function requestFileUpload(form)
-{
-	var xhr = new XMLHttpRequest();
-	xhr.onload = function()
+	function requestFileUpload(form)
 	{
-		if (this.status == 200)
+		var xhr = new XMLHttpRequest();
+		xhr.onload = function()
 		{
-			updateStatus(this.responseText, "green");
-		}
-		else
+			if (this.status == 200)
+			{
+				updateStatus(this.responseText, "green");
+			}
+			else
+			{
+				updateStatus("UPLOAD ERROR : UPLOAD FAILED", "red");
+			}
+			requestSystemRead();
+			requestFileList();
+			requestBitmapRead();
+		};
+
+		xhr.upload.onprogress = function(evt)
 		{
-			updateStatus("UPLOAD ERROR : UPLOAD FAILED", "red");
-		}
-		requestSystemRead();
-		requestFileList();
-		requestBitmapRead();
-	};
+			var percentComplete = Math.floor(evt.loaded / evt.total * 100);
+			updateStatus("UPLOAD PROGRESS :"+percentComplete+"%", "orange");
+		};
 
-	xhr.upload.onprogress = function(evt)
-	{
-		var percentComplete = Math.floor(evt.loaded / evt.total * 100);
-		updateStatus("UPLOAD PROGRESS :"+percentComplete+"%", "orange");
-	};
+		xhr.onerror = function()
+		{
+			updateStatus("UPLOAD ERROR : CONNECTION LOST", "red");
+		};
 
-	xhr.onerror = function()
-	{
-		updateStatus("UPLOAD ERROR : CONNECTION LOST", "red");
-	};
-
-	xhr.open("POST", address+"/upload", true);
-	xhr.send(form);
-}
+		xhr.open("POST", address+"/upload", true);
+		xhr.send(form);
+	}
 
 //--------------------------------------------------
-function requestFileDelete(fileName)
-{
-	var xhr = new XMLHttpRequest();
-	xhr.onload = function()
+	function requestFileDelete(fileName)
 	{
-		if (this.status == 200)
+		var xhr = new XMLHttpRequest();
+		xhr.onload = function()
 		{
-			updateStatus(this.responseText, "green");
-		}
-		else
-		{
-			updateStatus(this.responseText, "red");
-		}
-		requestSystemRead();
-		requestFileList();
-		requestBitmapRead();
-	};
+			if (this.status == 200)
+			{
+				updateStatus(this.responseText, "green");
+			}
+			else
+			{
+				updateStatus(this.responseText, "red");
+			}
+			requestSystemRead();
+			requestFileList();
+			requestBitmapRead();
+		};
 
-	xhr.onerror = function()
+		xhr.onerror = function()
+		{
+			updateStatus("DELETE ERROR : CONNECTION LOST", "red");
+		};
+
+		xhr.open("DELETE", address+"/delete", true);
+		xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+		xhr.send(fileName);
+	}
+
+	if (event.target.matches('#actions'))
 	{
-		updateStatus("DELETE ERROR : CONNECTION LOST", "red");
-	};
+		// Status Event--------------------------------------------------
+		document.getElementById("btnStatus").addEventListener('click', function () { document.getElementById("popoverStatus").show(document.getElementById("btnStatus"));}, false);
 
-	xhr.open("DELETE", address+"/delete", true);
-	xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-	xhr.send(fileName);
-}
-
-if (event.target.matches('#actions'))
-{
-		// Status Variable--------------------------------------------------
-		var btnStatus = document.getElementById("btnStatus");
-		var textStatus = document.getElementById("textStatus");
-		var iconStatus = document.getElementById("iconStatus");
-		var popoverStatus = document.getElementById("popoverStatus");
-
-		// File Variable--------------------------------------------------
-		var imgImage = new Image;
+		// Actions Variable--------------------------------------------------
 		var selectImage = document.getElementById("selectImage");
+		var canvasImage =document.getElementById("canvasImage");
 		var btnDelete = document.getElementById("btnDelete");
 		var btnDownload = document.getElementById("btnDownload");
-		var canvasImage =document.getElementById("canvasImage");
 		var sliderStart = document.getElementById("sliderStart");
 		var textStart = document.getElementById("textStart");
 		var sliderStop = document.getElementById("sliderStop");
 		var textStop = document.getElementById("textStop");
-
-		// Options Variable--------------------------------------------------
-		var delay;
 		var sliderDuration = document.getElementById("sliderDuration");
 		var textDuration = document.getElementById("textDuration");
-
-		// Actions Variable--------------------------------------------------
 		var btnLight = document.getElementById("btnLight");
 		var btnBurn = document.getElementById("btnBurn");
 		var btnStop = document.getElementById("btnStop");
 		var btnPlay = document.getElementById("btnPlay");
 
-		// Status Event--------------------------------------------------
-		btnStatus.addEventListener('click', function () { popoverStatus.show(btnStatus);}, false);
-
-		// Image Event--------------------------------------------------
+		// Actions Event--------------------------------------------------
 		selectImage.addEventListener('change', requestBitmapWrite, false);
-		btnDelete.addEventListener('click', function() {requestFileDelete(selectImage.value);}, false);
-		btnDownload.addEventListener('click', downloadFile, false);
 		imgImage.addEventListener('load', function() {drawImage(canvasImage,imgImage); drawCurtain(canvasImage,sliderStart.value,sliderStop.value);}, false);
+		btnDelete.addEventListener('click', function() {requestFileDelete(selectImage.value);}, false);
+		btnDownload.addEventListener('click', function() {download(address + "/" + selectImage.value,selectImage.value.substring(1));}, false);
 		sliderStart.addEventListener('input', updateStart, false);
 		sliderStart.addEventListener('input', function() {drawImage(canvasImage,imgImage); drawCurtain(canvasImage,sliderStart.value,sliderStop.value);}, false);
 		sliderStart.addEventListener('change', requestBitmapWrite, false);
 		sliderStop.addEventListener('input', updateStop, false);
 		sliderStop.addEventListener('input', function() {drawImage(canvasImage,imgImage); drawCurtain(canvasImage,sliderStart.value,sliderStop.value);}, false);
 		sliderStop.addEventListener('change', requestBitmapWrite, false);
-
-		// Options Event--------------------------------------------------
 		sliderDuration.addEventListener('input', updateDuration, false);
 		sliderDuration.addEventListener('change', requestParameterWrite, false);
-
-		// Actions Event--------------------------------------------------
 		btnLight.addEventListener('click', function() {requestAction("/light");}, false);
 		btnBurn.addEventListener('click', function() {requestAction("/burn");}, false);
 		btnStop.addEventListener('click', function() {requestAction("/stop");}, false);
@@ -429,7 +610,7 @@ if (event.target.matches('#actions'))
 			textStop.innerHTML = sliderStop.value + "px";
 			// update duration
 			sliderDuration.setAttribute("max",(sliderStop.value-sliderStart.value)*255);
-			sliderDuration.value = (sliderStop.value-sliderStart.value)*delay;
+			sliderDuration.value = (sliderStop.value-sliderStart.value)*PARAMETER["delay"];
 			textDuration.innerHTML = sliderDuration.value + "ms";
 		}
 
@@ -438,11 +619,12 @@ if (event.target.matches('#actions'))
 		{
 			// check if start < stop
 			sliderStart.value = Math.min(sliderStart.value,sliderStop.value);
+			// update textStart textStop
 			textStart.innerHTML = sliderStart.value + "px";
 			textStop.innerHTML = sliderStop.value + "px";
 			// update duration
 			sliderDuration.setAttribute("max",(sliderStop.value-sliderStart.value)*255);
-			sliderDuration.value = (sliderStop.value-sliderStart.value)*delay;
+			sliderDuration.value = (sliderStop.value-sliderStart.value)*PARAMETER["delay"];
 			textDuration.innerHTML = sliderDuration.value + "ms";
 		}
 
@@ -452,119 +634,16 @@ if (event.target.matches('#actions'))
 			// update duration
 			textDuration.innerHTML = sliderDuration.value + "ms";
 			// update delay
-			delay = sliderDuration.value/(sliderStop.value-sliderStart.value);
+			PARAMETER["delay"] = sliderDuration.value/(sliderStop.value-sliderStart.value);
 		}
 
-		//--------------------------------------------------
-		function setParameter(jsonString)
-		{
-			var json = JSON.parse(jsonString);
-			// set parameters values
-			sliderDuration.value = (sliderStop.value-sliderStart.value)*json["delay"];
-			textDuration.innerHTML = sliderDuration.value + "ms";
-			delay = json["delay"];
-		}
-
-		//--------------------------------------------------
-		function getParameter()
-		{
-			var json = new Object();
-			// get parameters
-			json.delay = delay;
-			// convert json to string
-			return JSON.stringify(json);
-		}
-
-		//--------------------------------------------------
-		function setBitmap(jsonString)
-		{
-			var json = JSON.parse(jsonString);
-			// set actions values
-			sliderStart.setAttribute("min", json["indexMin"]);
-			sliderStart.setAttribute("max", json["indexMax"]);
-			sliderStart.value = json["indexStart"];
-			textStart.innerHTML = sliderStart.value + "px";
-			sliderStop.setAttribute("min", json["indexMin"]);
-			sliderStop.setAttribute("max", json["indexMax"]);
-			sliderStop.value = json["indexStop"];
-			textStop.innerHTML = sliderStop.value + "px";
-			sliderDuration.setAttribute("max",(json["indexStop"]-json["indexStart"])*255);
-			sliderDuration.value = (json["indexStop"]-json["indexStart"])*delay;
-			textDuration.innerHTML = sliderDuration.value + "ms";
-			//
-			selectImage.value = json["bmpPath"];
-			if(json["isbmpload"])
-			{
-				sliderStart.disabled = false;
-				sliderStop.disabled = false;
-				sliderDuration.disabled = false;
-				btnBurn.disabled = false;
-				btnPlay.disabled = false;
-				imgImage.src= address + "/" + json["bmpPath"];
-			}
-			// it isn't a bitmap
-			else
-			{
-				sliderStart.disabled = true;
-				sliderStop.disabled = true;
-				sliderDuration.disabled = true;
-				btnBurn.disabled = true;
-				btnPlay.disabled = true;
-				drawError(canvasImage, "Not Load");
-			}	
-		} 
-
-		//--------------------------------------------------
-		function getBitmap()
-		{
-			var json = new Object();
-			// get actions values
-			json.indexStart = sliderStart.value;
-			json.indexStop = sliderStop.value;
-			json.bmpPath = selectImage.value;
-			// convert json to string
-			return JSON.stringify(json);
-		}
-
-		//--------------------------------------------------
-		function setFileList(jsonString)
-		{
-			var json = JSON.parse(jsonString);
-			selectImage.options.length = json.fileList.length;
-
-			for (var i = 0; i < json.fileList.length; i++)
-			{
-				selectImage.options[i].value = json.fileList[i]; 
-				selectImage.options[i].text = json.fileList[i]; 
-			}
-		}
-		//--------------------------------------------------
-		function setSystem(jsonString)
-		{
-
-		}
-
-		//--------------------------------------------------
-		function downloadFile()
-		{
-			// create a link
-			var a  = document.createElement('a');
-			// create a link
-			a.href = address + "/" + selectImage.value;
-			// set the name of the link
-			a.download = selectImage.value.substring(1);
-			// download the link
-			a.click();
-		}
 	}
 
 	if (event.target.matches('#settings'))
 	{
-		// Status Variable--------------------------------------------------
-		var btnStatus = document.getElementById("btnStatus");
-		var textStatus = document.getElementById("textStatus");
-		var iconStatus = document.getElementById("iconStatus");
-		var popoverStatus = document.getElementById("popoverStatus");
+
+		// Status Event--------------------------------------------------
+		document.getElementById("btnStatus").addEventListener('click', function () { document.getElementById("popoverStatus").show(document.getElementById("btnStatus"));}, false);
 
 		// Settings Variable--------------------------------------------------
 		var sliderDelay = document.getElementById("sliderDelay");
@@ -588,9 +667,6 @@ if (event.target.matches('#actions'))
 		var ckEndColor = document.getElementById("ckEndColor");
 		var btnSave = document.getElementById("btnSave");
 		var btnRestore = document.getElementById("btnRestore");
-
-		// Status Event--------------------------------------------------
-		btnStatus.addEventListener('click', function () { popoverStatus.show(btnStatus);}, false);
 
 		// Settings Event--------------------------------------------------
 		sliderDelay.addEventListener('input', function() { textDelay.innerHTML = sliderDelay.value + "ms";}, false);
@@ -623,107 +699,39 @@ if (event.target.matches('#actions'))
 
 		// Main --------------------------------------------------
 		requestParameterRead();
-
-		//--------------------------------------------------
-		function setParameter(jsonString)
-		{
-			var json = JSON.parse(jsonString);
-			// set parameters values
-			sliderDelay.value = json["delay"];
-			textDelay.innerHTML = sliderDelay.value + "ms";
-			sliderBrightness.value = json["brightness"];
-			textBrightness.innerHTML = sliderBrightness.value + "%";
-			sliderCountdown.value = json["countdown"];
-			textCountdown.innerHTML = sliderCountdown.value + "ms";
-			ckCountdown.checked  = json["iscountdown"];
-			sliderRepeat.value = json["repeat"];
-			textRepeat.innerHTML = sliderRepeat.value + "x";
-			ckInvert.checked  = json["isinvert"];
-			ckRepeat.checked  = json["isrepeat"];
-			ckBounce.checked  = json["isbounce"];
-			updateCheckbox(ckRepeat,ckBounce);
-			updateCheckbox(ckBounce,ckRepeat);
-			sliderPause.value = json["pause"];
-			textPause.innerHTML = sliderPause.value + "px";
-			ckPause.checked  = json["ispause"];
-			ckCut.checked  = json["iscut"];
-			updateCheckbox(ckPause,ckCut);
-			updateCheckbox(ckCut,ckPause);
-			pickerColor.value = json["color"];
-			ckEndOff.checked  = json["isendoff"];
-			ckEndColor.checked  = json["isendcolor"];
-			updateCheckbox(ckEndOff,ckEndColor);
-			updateCheckbox(ckEndColor,ckEndOff);
-		}
-
-		//--------------------------------------------------
-		function getParameter()
-		{
-			var json = new Object();
-			// get parameters
-			json.delay = sliderDelay.value;
-			json.brightness = sliderBrightness.value;
-			json.countdown = sliderCountdown.value;
-			json.iscountdown = ckCountdown.checked;
-			json.repeat = sliderRepeat.value;
-			json.isinvert = ckInvert.checked;
-			json.isrepeat = ckRepeat.checked;
-			json.isbounce = ckBounce.checked;
-			json.pause = sliderPause.value;
-			json.ispause = ckPause.checked;
-			json.iscut = ckCut.checked;
-			json.color = pickerColor.value;
-			json.isendoff = ckEndOff.checked;
-			json.isendcolor = ckEndColor.checked;
-			// convert json to string
-			return JSON.stringify(json);
-		}
 	}
 
 	if (event.target.matches('#upload'))
 	{
-		// Status Variable--------------------------------------------------
-		var btnStatus = document.getElementById("btnStatus");
-		var textStatus = document.getElementById("textStatus");
-		var iconStatus = document.getElementById("iconStatus");
-		var popoverStatus = document.getElementById("popoverStatus");
+		// Status Event--------------------------------------------------
+		document.getElementById("btnStatus").addEventListener('click', function () { document.getElementById("popoverStatus").show(document.getElementById("btnStatus"));}, false);
 
-		// Files Variable--------------------------------------------------
+		// Upload Variable--------------------------------------------------
 		var imgConvert = new Image;
 		var canvasConvert = document.getElementById("canvasConvert");
 		var selectConvert = document.getElementById("selectConvert");
-
-		// Options Variable--------------------------------------------------
 		var selectGamma = document.getElementById("selectGamma");
 		var ckBottomTop = document.getElementById("ckBottomTop");
 		var sliderPixels = document.getElementById("sliderPixels");
 		var textPixels = document.getElementById("textPixels");
 		var sliderLineCut = document.getElementById("sliderLineCut");
 		var textLineCut = document.getElementById("textLineCut");
-
-		// Action Variable--------------------------------------------------
 		var btnUploadOriginal = document.getElementById("btnUploadOriginal");
 		var btnUploadConvert = document.getElementById("btnUploadConvert");
 		var btnDownloadConvert = document.getElementById("btnDownloadConvert");
 
-		// Status Event--------------------------------------------------
-		btnStatus.addEventListener('click', function () { popoverStatus.show(btnStatus);}, false);
-
-		// File event--------------------------------------------------
+		// Upload event--------------------------------------------------
 		selectConvert.addEventListener('change', setImgConvert, false);
 		imgConvert.addEventListener('load', function() {drawConvert(canvasConvert, imgConvert, ckBottomTop.checked, sliderPixels.value, sliderPixels.getAttribute("max")); drawGamma(canvasConvert, selectGamma.value); drawCut(canvasConvert, sliderLineCut.value);}, false);
-
-		// Options Event--------------------------------------------------
 		selectGamma.addEventListener('change', function() {drawConvert(canvasConvert, imgConvert, ckBottomTop.checked, sliderPixels.value, sliderPixels.getAttribute("max")); drawGamma(canvasConvert, selectGamma.value); drawCut(canvasConvert, sliderLineCut.value);}, false);
 		ckBottomTop.addEventListener('click', function() {drawConvert(canvasConvert, imgConvert, ckBottomTop.checked, sliderPixels.value, sliderPixels.getAttribute("max")); drawGamma(canvasConvert, selectGamma.value); drawCut(canvasConvert, sliderLineCut.value);}, false);
 		sliderPixels.addEventListener('input', function() {textPixels.innerHTML = sliderPixels.value + "px";}, false);
 		sliderPixels.addEventListener('change', function() {drawConvert(canvasConvert, imgConvert, ckBottomTop.checked, sliderPixels.value, sliderPixels.getAttribute("max")); drawGamma(canvasConvert, selectGamma.value); drawCut(canvasConvert, sliderLineCut.value);}, false);
 		sliderLineCut.addEventListener('input', function() {textLineCut.innerHTML = sliderLineCut.value + "px";}, false);
 		sliderLineCut.addEventListener('change', function() {drawConvert(canvasConvert, imgConvert, ckBottomTop.checked, sliderPixels.value, sliderPixels.getAttribute("max")); drawGamma(canvasConvert, selectGamma.value); drawCut(canvasConvert, sliderLineCut.value);}, false);
-		// Actions Event--------------------------------------------------
-		btnUploadOriginal.addEventListener('click', uploadOriginal, false);
-		btnDownloadConvert.addEventListener('click', downloadConvert, false);
-		btnUploadConvert.addEventListener('click', uploadConvert, false);
+		btnUploadOriginal.addEventListener('click', function() {upload(selectConvert.files[0],trimFileName(selectConvert.files[0].name, ""));}, false);
+		btnDownloadConvert.addEventListener('click', function() {download(CanvasToBMP.toDataURL(canvasConvert),trimFileName(selectConvert.files[0].name, "bmp"));}, false);
+		btnUploadConvert.addEventListener('click', function() {upload(CanvasToBMP.toBlob(canvasConvert),trimFileName(selectConvert.files[0].name, "bmp"));}, false);
 
 		// Main --------------------------------------------------
 		requestSystemRead();
@@ -786,134 +794,15 @@ if (event.target.matches('#actions'))
 			}
 		}
 
-		//--------------------------------------------------
-		function setSystem(jsonString)
-		{
-			var json = JSON.parse(jsonString);
-			// set parameters values
-			sliderPixels.setAttribute("max",json["numPixels"]);
-			sliderPixels.value = json["numPixels"];
-			textPixels.innerHTML = sliderPixels.value + "px";
-			sliderLineCut.setAttribute("max",25);
-			sliderLineCut.value = 0;
-			textLineCut.innerHTML = sliderLineCut.value + "px";
-			//
-			var usedBytes = json["usedBytes"];
-			var totalBytes = json["totalBytes"];
-			remainingBytes = totalBytes-usedBytes;
-		}
-
-		//--------------------------------------------------
-		function setFileList(jsonString)
-		{
-
-		}
-
-		//--------------------------------------------------
-		function setBitmap(jsonString)
-		{
-
-		}
-
-		//--------------------------------------------------
-		function downloadConvert()
-		{
-			// convert canvasConvert to blob
-			var bitmap    = CanvasToBMP.toDataURL(canvasConvert);
-			// create a link
-			var a  = document.createElement('a');
-			// set the content of the link
-			a.href = bitmap;
-			// set the name of the link
-			a.download = trimFileName(selectConvert.files[0].name, "bmp");
-			// download the link
-			a.click();
-		}
-
-		//--------------------------------------------------
-		function uploadConvert()
-		{
-			// convert canvasConvert to blob
-			var blobConvert = CanvasToBMP.toBlob(canvasConvert);
-			// too big? display an error
-			if (blobConvert.size > remainingBytes)
-			{
-				updateStatus("UPLOAD ERROR : NOT ENOUGH SPACE", "red");
-			}
-			// no problem? send the file
-			else
-			{
-				var form = new FormData();
-				form.append('file', blobConvert,trimFileName(selectConvert.files[0].name, "bmp"));
-				requestFileUpload(form);
-			}
-		}
-
-		//--------------------------------------------------
-		function uploadOriginal()
-		{
-			// too big? display an error
-			if (selectConvert.files[0].size > remainingBytes)
-			{
-				updateStatus("UPLOAD ERROR : NOT ENOUGH SPACE", "red");
-			}
-			// no problem? send the file
-			else
-			{
-				var form = new FormData();
-				form.append('file', selectConvert.files[0], trimFileName(selectConvert.files[0].name, ""));
-				requestFileUpload(form);
-			}
-		}
-
 	}
 
 	if (event.target.matches('#system'))
 	{
-
-		// Status Variable--------------------------------------------------
-		var btnStatus = document.getElementById("btnStatus");
-		var textStatus = document.getElementById("textStatus");
-		var iconStatus = document.getElementById("iconStatus");
-		var popoverStatus = document.getElementById("popoverStatus");
-
-		// System Variable--------------------------------------------------
-		var textLedNumber = document.getElementById("textLedNumber");
-		var canvasSystem = document.getElementById("canvasSystem");
-		var canvasLegend = document.getElementById("canvasLegend");
-
 		// Status Event--------------------------------------------------
-		btnStatus.addEventListener('click', function () { popoverStatus.show(btnStatus);}, false);
+		document.getElementById("btnStatus").addEventListener('click', function () { document.getElementById("popoverStatus").show(document.getElementById("btnStatus"));}, false);
 
 		//Main--------------------------------------------------
 		requestSystemRead();
-
-		//--------------------------------------------------
-		function setSystem(jsonString)
-		{
-			var json = JSON.parse(jsonString);
-			// set parameters values
-			textLedNumber.innerHTML = json["numPixels"];
-			var usedBytes = json["usedBytes"];
-			var totalBytes = json["totalBytes"];
-			var remainingBytes = totalBytes - usedBytes;
-			// set LittleFS parameters
-			var myLittleFS = {
-				"Used": usedBytes,
-				"Remaining": remainingBytes,
-			};
-			// set chart parameters
-			var myChart = new Piechart(
-			{
-				canvas:canvasSystem,
-				data:myLittleFS,
-				colors:["red","green"],
-				legend:canvasLegend
-			}
-			);
-			// draw the chart
-			myChart.draw();
-		}
 	}
 
 }, false);
