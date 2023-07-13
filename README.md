@@ -1,8 +1,10 @@
 # ImagePainting2
 
-Update of ImagePainting, but i want to keep the first version. So here is the second version.
+New version of ImagePainting, but i want to keep the first version. So here is the second version.
+
 Basically the same, the main difference is that i give up the smartphone app. Phonegap is dead (so no easy way to compile it for android) and iOS is so closed that i can't make an app without paying....
 Now the frontend is directly store and serve by the ESP8266 as a webpage. It work for any device with a decent browser (computer, android and iOS....).
+
 Everything seems to work with the last board/tool/library upgrade (july 2023).
 
 ## Introduction
@@ -13,7 +15,11 @@ My project is base on hardware and use simplicity. All you need is an USB batter
 
 After a simple hardware assembly and flashing my code, all actions (image upload/delete, start, pause, stop, light) and parameters (delay, brightness, repeat, bounce, invert) are send through your webbrowser. So load your smartphone with your picture and you are ready to shoot.
 
-## Hardware Prerequisites
+## Hardware Assembly
+
+The following hardware assembly are 100% working for me, but could be improve by adding a capacitor to filter the power and a level schifter to convert the 3.3v logic to 5v for the LEDs. The best option will be this shield [Hex Wemos D1 Mini Wi-Fi LED Controller](https://www.evilgeniuslabs.org/hex-wemos-d1-mini-wifi-led-controller) from Evil Genius. All the drawing i give are for the Wemos D1 mini and clone, if you use an other ESP8266 board read carefully her spec.
+
+### Hardware Prerequisites
 
 ![hardware](https://user-images.githubusercontent.com/2498942/68552594-e7a07400-0418-11ea-9d8a-11a54ea146d7.jpg)
 
@@ -24,10 +30,6 @@ After a simple hardware assembly and flashing my code, all actions (image upload
 * **LED Strip :** I use APA102. It could work on others LEDS like WS2812, but APA102 are better and faster.
 
 * **Push Button (optional) :** Any Push button should be good.
-
-## Hardware Assembly
-
-The following hardware assembly are 100% working for me, but could be improve by adding a capacitor to filter the power and a level schifter to convert the 3.3v logic to 5v for the LEDs. The best option will be this shield [Hex Wemos D1 Mini Wi-Fi LED Controller](https://www.evilgeniuslabs.org/hex-wemos-d1-mini-wifi-led-controller) from Evil Genius. All the drawing i give are for the Wemos D1 mini and clone, if you use an other ESP8266 board read carefully her spec.
 
 ### LED Strip connection
 
@@ -137,6 +139,16 @@ You need to install the following board/tool/library :
 
 * [ArduinoJson](https://github.com/bblanchon/ArduinoJson) - The JSON library for Arduino
 
+### Choose your frontend
+
+There is two frontend call "Simple" and "Smartphone" that can be find inside /FrontEnd :
+
+* **Simple :** This is a basic frontend that take less memory space on the ESP8266 (60ko/4Mo).
+
+* **Smartphone :** This is a nicer frontend for smartphone screen that use [Onsen Ui](https://onsen.io/) but it take more memory space on the ESP8266 (500ko/4Mo).
+
+To change the frontend, simply copy the content of "/FrontEnd/Simple" or "/FrontEnd/Smartphone" inside "/ESP8266/imagePainting2/data" and upload the data by clicking to "ESP8266 LittleFS Data Upload". 
+
 ### Flash instruction
 
 * Tweak the code for your hardware and wifi.
@@ -148,13 +160,6 @@ You need to install the following board/tool/library :
 * Upload the data by clicking to "ESP8266 LittleFS Data Upload". 
 
 ## Use ImagePainting2
-
-There is two frontend call "Simple" and "Smartphone" that can be find inside /FrontEnd :
-
-* **Simple :** This is the default frontend as it take less memory space on the ESP8266 (60ko/4Mo).
-* **Smartphone :** This is nicer frontend for smartphone screen that use [Onsen Ui](https://onsen.io/) but it take more memory space on the ESP8266 (500ko/4Mo).
-
-To change the frontend, simply copy the content of "/FrontEnd/Simple" or "/FrontEnd/Smartphone" inside "/ESP8266/imagePainting2/data" and upload the data by clicking to "ESP8266 LittleFS Data Upload". 
 
 ### Actions screen
 
@@ -228,17 +233,25 @@ To change the frontend, simply copy the content of "/FrontEnd/Simple" or "/Front
 * **Led :** Number of led attach to the ESP8266.
 * **filesystem :** Memory use on the ESP8266.
 
-## Case scenario
+## Settings combination
 
-I try my best to show you some possibility of ImagePainting2 using different settings :
+I try my best to show you what to expect of ImagePainting2 when using some settings together.
+
+### Repeat and Bounce
 
 ![help1](https://user-images.githubusercontent.com/2498942/69259671-e57ba980-0bbe-11ea-8891-45a0cb5b84b9.png)
+
+### Pause and Cut
 
 ![help2](https://user-images.githubusercontent.com/2498942/68999791-1362a480-08c6-11ea-9d93-aec3192cc787.png)
 
 ## About Picture
 
-ESP8266 is not powerful enough to handle compress format as jpeg, png... etc. So yours pictures has to follow this organisation.
+ESP8266 is not powerful enough to handle compress format as jpeg, png... etc. So yours pictures has to follow a special organisation/format.
+
+Hopefully, the frontend build in upload tool do all the convertion for you.
+
+### Picture inside the ESP8266
 
 ![bitmapExplanation](https://user-images.githubusercontent.com/2498942/68552286-a3f83b00-0415-11ea-8ec8-e8d4f2450843.jpg)
 
@@ -246,4 +259,6 @@ ESP8266 is not powerful enough to handle compress format as jpeg, png... etc. So
 * Your Bitmap must be rotate by 90°. ImagePainting2 will display Bitmap line by line from the left to the right.
 * The width of your Bitmap has to be the same than the length of your LED strip or your Bitmap will be crop.
 
-Hopefully, the use of the frontend build in upload tool free you of all this consideration.
+### Picture pack
+
+I have put you some picture inside a [picture pack](https://github.com/jbreizh/imagePaintingPack). This picture come from the commercial project [Pixelstick](http://www.thepixelstick.com/index.html) and [Magilight](https://www.fotorgear.com/products/magilight).
