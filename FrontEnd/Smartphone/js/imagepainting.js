@@ -20,7 +20,6 @@ document.addEventListener('init', function(event) {
 	// Variable
 	var address = "";
 	//var address = "http://192.168.6.55";
-	var imgImage = new Image;
 	var FILELIST = new Object();
 	var BITMAP = new Object();
 	var PARAMETER = new Object();
@@ -166,40 +165,36 @@ document.addEventListener('init', function(event) {
 			document.getElementById("sliderStart").setAttribute("min", BITMAP["indexMin"]);
 			document.getElementById("sliderStart").setAttribute("max", BITMAP["indexMax"]);
 			document.getElementById("sliderStart").value = BITMAP["indexStart"];
-			if (document.getElementById("sliderStart") != null) document.getElementById("textStart").innerHTML = document.getElementById("sliderStart").value + "px";
 		}
+		if (document.getElementById("textStart") != null) document.getElementById("textStart").innerHTML = BITMAP["indexStart"] + "px";
 		if (document.getElementById("sliderStop") != null)
 		{
 			document.getElementById("sliderStop").setAttribute("min", BITMAP["indexMin"]);
 			document.getElementById("sliderStop").setAttribute("max", BITMAP["indexMax"]);
 			document.getElementById("sliderStop").value = BITMAP["indexStop"];
-			if (document.getElementById("sliderStop") != null) document.getElementById("textStop").innerHTML = document.getElementById("sliderStop").value + "px";
 		}
+		if (document.getElementById("textStop") != null) document.getElementById("textStop").innerHTML = BITMAP["indexStop"] + "px";
 		if (document.getElementById("sliderDuration") != null)
 		{
 			document.getElementById("sliderDuration").setAttribute("max",(BITMAP["indexStop"]-BITMAP["indexStart"])*255);
 			document.getElementById("sliderDuration").value = (BITMAP["indexStop"]-BITMAP["indexStart"])*PARAMETER["delay"];
-			if (document.getElementById("textDuration") != null) document.getElementById("textDuration").innerHTML = document.getElementById("sliderDuration").value + "ms";
 		}
+		if (document.getElementById("textDuration") != null) document.getElementById("textDuration").innerHTML = (BITMAP["indexStop"]-BITMAP["indexStart"])*PARAMETER["delay"] + "ms"
 		if (document.getElementById("selectImage") != null) document.getElementById("selectImage").value = BITMAP["bmpPath"];
+	
+		if (document.getElementById("sliderStart") != null) document.getElementById("sliderStart").disabled = !BITMAP["isbmpload"];
+		if (document.getElementById("sliderStop") != null) document.getElementById("sliderStop").disabled = !BITMAP["isbmpload"];
+		if (document.getElementById("sliderDuration") != null) document.getElementById("sliderDuration").disabled = !BITMAP["isbmpload"];
+		if (document.getElementById("btnBurn") != null) document.getElementById("btnBurn").disabled = !BITMAP["isbmpload"];
+		if (document.getElementById("btnPlay") != null) document.getElementById("btnPlay").disabled = !BITMAP["isbmpload"];
 		
 		if(BITMAP["isbmpload"])
 		{
-			if (document.getElementById("sliderStart") != null) document.getElementById("sliderStart").disabled = false;
-			if (document.getElementById("sliderStop") != null) document.getElementById("sliderStop").disabled = false;
-			if (document.getElementById("sliderDuration") != null) document.getElementById("sliderDuration").disabled = false;
-			if (document.getElementById("btnBurn") != null) document.getElementById("btnBurn").disabled = false;
-			if (document.getElementById("btnPlay") != null) document.getElementById("btnPlay").disabled = false;
 			imgImage.src= address + "/" + BITMAP["bmpPath"];
 		}
 		// it isn't a bitmap
 		else
 		{
-			if (document.getElementById("sliderStart") != null) document.getElementById("sliderStart").disabled = true;
-			if (document.getElementById("sliderStop") != null) document.getElementById("sliderStop").disabled = true;
-			if (document.getElementById("sliderDuration") != null) document.getElementById("sliderDuration").disabled = true;
-			if (document.getElementById("btnBurn") != null) document.getElementById("btnBurn").disabled = true;
-			if (document.getElementById("btnPlay") != null) document.getElementById("btnPlay").disabled = true;
 			if (document.getElementById("canvasImage") != null) drawError(document.getElementById("canvasImage"), "Not Load");
 		}	
 	} 
@@ -441,14 +436,13 @@ document.addEventListener('init', function(event) {
 		//
 		if (document.getElementById("textLedNumber") != null) document.getElementById("textLedNumber").innerHTML = SYSTEM["numPixels"] + "px";
 		// set chart parameters
-		if (document.getElementById("canvasSystem") != null && document.getElementById("canvasLegend") != null)
+		if (document.getElementById("canvasSystem") != null)
 		{
-			var myChart = new Piechart(
+			var myChart = new PieChart(
 			{
-				canvas:canvasSystem,
+				canvas:document.getElementById("canvasSystem"),
 				data:{"Used": SYSTEM["usedBytes"],"Free": SYSTEM["freeBytes"]},
 				colors:["red","green"],
-				legend:canvasLegend
 			}
 			);
 			// draw the chart
@@ -563,6 +557,7 @@ document.addEventListener('init', function(event) {
 		document.getElementById("btnStatus").addEventListener('click', function () { document.getElementById("popoverStatus").show(document.getElementById("btnStatus"));}, false);
 
 		// Actions Variable--------------------------------------------------
+		var imgImage = new Image;
 		var selectImage = document.getElementById("selectImage");
 		var canvasImage =document.getElementById("canvasImage");
 		var btnDelete = document.getElementById("btnDelete");
