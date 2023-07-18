@@ -18,13 +18,11 @@ Everything seems to work with the last board/tool/library upgrade (july 2023).
 
 ## Description
 
-ImagePainting2 is project of lightPainting device aiming to be powerfull but yet simple to build and to use. All you need is an USB battery bank, a LED Strip, an ESP8266 board and a smartphone (any device with wifi and a browser).
+Existing DIY project like Adafruit [NeoPixel Painter](https://learn.adafruit.com/neopixel-painter/overview) or [DotStar Pi Painter](https://learn.adafruit.com/dotstar-pi-painter/overview) and also commercial project like [Pixelstick](http://www.thepixelstick.com/index.html) or [Magilight](https://www.fotorgear.com/products/magilight) have been a great source of inspiration/information, but i find those too complicated to build and/or too expensive.
+
+ImagePainting2 is project of a lightPainting device aiming to be powerfull but yet simple and cheap to build and to use. All you need is an USB battery bank, a LED Strip, an ESP8266 board and a smartphone (any device with wifi and a browser).
 
 After a simple [electronic wiring](https://github.com/jbreizh/imagepainting2/wiki/electronic-wiring), adapting the [ESP8266 code](https://github.com/jbreizh/imagepainting2/wiki/ESP8266-code) and finally following the [flash instruction](https://github.com/jbreizh/imagepainting2/wiki/Flash-instruction), you will have a lightPainting device that you can control with your [smartphone](https://github.com/jbreizh/imagepainting2/wiki/User-Manual) to shoot [great picture](https://github.com/jbreizh/imagepainting2/wiki/examples).
-
-![LightScythe](https://github.com/jbreizh/imagepainting2/assets/2498942/f1ae6f3f-9429-4f29-a689-9bd6fdb48098)
-
-Existing project on the topic like Adafruit [NeoPixel Painter](https://learn.adafruit.com/neopixel-painter/overview) or [Light Painting with Raspberry Pi](https://learn.adafruit.com/light-painting-with-raspberry-pi/overview) have been a great source of inspiration/information, but i find those too complicated and unpractical on the field. You need too much hardware and you can't be far from your computer to load other image or change parameters.
 
 ## Documentation
 

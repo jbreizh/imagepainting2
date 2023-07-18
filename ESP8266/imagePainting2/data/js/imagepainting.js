@@ -504,7 +504,7 @@ document.addEventListener('init', function(event) {
 			}
 			requestSystemRead();
 			requestFileList();
-			requestBitmapRead();
+			//requestBitmapRead();
 		};
 
 		xhr.upload.onprogress = function(evt)
@@ -575,14 +575,12 @@ document.addEventListener('init', function(event) {
 
 		// Actions Event--------------------------------------------------
 		selectImage.addEventListener('change', requestBitmapWrite, false);
-		imgImage.addEventListener('load', function() {drawImage(canvasImage,imgImage); drawCurtain(canvasImage,sliderStart.value,sliderStop.value);}, false);
+		imgImage.addEventListener('load', function() {drawImage(canvasImage,imgImage,sliderStart.value,sliderStop.value);}, false);
 		btnDelete.addEventListener('click', function() {requestFileDelete(selectImage.value);}, false);
 		btnDownload.addEventListener('click', function() {download(address + "/" + selectImage.value,selectImage.value.substring(1));}, false);
 		sliderStart.addEventListener('input', updateStart, false);
-		sliderStart.addEventListener('input', function() {drawImage(canvasImage,imgImage); drawCurtain(canvasImage,sliderStart.value,sliderStop.value);}, false);
 		sliderStart.addEventListener('change', requestBitmapWrite, false);
 		sliderStop.addEventListener('input', updateStop, false);
-		sliderStop.addEventListener('input', function() {drawImage(canvasImage,imgImage); drawCurtain(canvasImage,sliderStart.value,sliderStop.value);}, false);
 		sliderStop.addEventListener('change', requestBitmapWrite, false);
 		sliderDuration.addEventListener('input', updateDuration, false);
 		sliderDuration.addEventListener('change', requestParameterWrite, false);
@@ -607,6 +605,8 @@ document.addEventListener('init', function(event) {
 			sliderDuration.setAttribute("max",(sliderStop.value-sliderStart.value)*255);
 			sliderDuration.value = (sliderStop.value-sliderStart.value)*PARAMETER["delay"];
 			textDuration.innerHTML = sliderDuration.value + "ms";
+			// update canvas
+			drawImage(canvasImage,imgImage,sliderStart.value,sliderStop.value);
 		}
 
 		//--------------------------------------------------
@@ -621,6 +621,8 @@ document.addEventListener('init', function(event) {
 			sliderDuration.setAttribute("max",(sliderStop.value-sliderStart.value)*255);
 			sliderDuration.value = (sliderStop.value-sliderStart.value)*PARAMETER["delay"];
 			textDuration.innerHTML = sliderDuration.value + "ms";
+			// update canvas
+			drawImage(canvasImage,imgImage,sliderStart.value,sliderStop.value);
 		}
 
 		//--------------------------------------------------
@@ -717,13 +719,13 @@ document.addEventListener('init', function(event) {
 
 		// Upload event--------------------------------------------------
 		selectConvert.addEventListener('change', setImgConvert, false);
-		imgConvert.addEventListener('load', function() {drawConvert(canvasConvert, imgConvert, ckBottomTop.checked, sliderPixels.value, sliderPixels.getAttribute("max")); drawGamma(canvasConvert, selectGamma.value); drawCut(canvasConvert, sliderLineCut.value);}, false);
-		selectGamma.addEventListener('change', function() {drawConvert(canvasConvert, imgConvert, ckBottomTop.checked, sliderPixels.value, sliderPixels.getAttribute("max")); drawGamma(canvasConvert, selectGamma.value); drawCut(canvasConvert, sliderLineCut.value);}, false);
-		ckBottomTop.addEventListener('click', function() {drawConvert(canvasConvert, imgConvert, ckBottomTop.checked, sliderPixels.value, sliderPixels.getAttribute("max")); drawGamma(canvasConvert, selectGamma.value); drawCut(canvasConvert, sliderLineCut.value);}, false);
+		imgConvert.addEventListener('load', function() {drawConvert(canvasConvert, imgConvert, ckBottomTop.checked, sliderPixels.value, sliderPixels.getAttribute("max"), selectGamma.value, sliderLineCut.value);}, false);
+		selectGamma.addEventListener('change', function() {drawConvert(canvasConvert, imgConvert, ckBottomTop.checked, sliderPixels.value, sliderPixels.getAttribute("max"), selectGamma.value, sliderLineCut.value);}, false);
+		ckBottomTop.addEventListener('click', function() {drawConvert(canvasConvert, imgConvert, ckBottomTop.checked, sliderPixels.value, sliderPixels.getAttribute("max"), selectGamma.value, sliderLineCut.value);}, false);
 		sliderPixels.addEventListener('input', function() {textPixels.innerHTML = sliderPixels.value + "px";}, false);
-		sliderPixels.addEventListener('change', function() {drawConvert(canvasConvert, imgConvert, ckBottomTop.checked, sliderPixels.value, sliderPixels.getAttribute("max")); drawGamma(canvasConvert, selectGamma.value); drawCut(canvasConvert, sliderLineCut.value);}, false);
+		sliderPixels.addEventListener('change', function() {drawConvert(canvasConvert, imgConvert, ckBottomTop.checked, sliderPixels.value, sliderPixels.getAttribute("max"), selectGamma.value, sliderLineCut.value);}, false);
 		sliderLineCut.addEventListener('input', function() {textLineCut.innerHTML = sliderLineCut.value + "px";}, false);
-		sliderLineCut.addEventListener('change', function() {drawConvert(canvasConvert, imgConvert, ckBottomTop.checked, sliderPixels.value, sliderPixels.getAttribute("max")); drawGamma(canvasConvert, selectGamma.value); drawCut(canvasConvert, sliderLineCut.value);}, false);
+		sliderLineCut.addEventListener('change', function() {drawConvert(canvasConvert, imgConvert, ckBottomTop.checked, sliderPixels.value, sliderPixels.getAttribute("max"), selectGamma.value, sliderLineCut.value);}, false);
 		btnUploadOriginal.addEventListener('click', function() {upload(selectConvert.files[0],trimFileName(selectConvert.files[0].name, ""));}, false);
 		btnDownloadConvert.addEventListener('click', function() {download(CanvasToBMP.toDataURL(canvasConvert),trimFileName(selectConvert.files[0].name, "bmp"));}, false);
 		btnUploadConvert.addEventListener('click', function() {upload(CanvasToBMP.toBlob(canvasConvert),trimFileName(selectConvert.files[0].name, "bmp"));}, false);

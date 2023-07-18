@@ -17,7 +17,7 @@ function drawError(canvas, error)
 }
 
 //--------------------------------------------------
-function drawImage(canvas, image)
+function drawImage(canvas, image, start, stop)
 {
 	// canvas
 	var ctx=canvas.getContext("2d");
@@ -35,11 +35,15 @@ function drawImage(canvas, image)
 	ctx.drawImage(image, -canvas.height/2, -canvas.width/2);
 	//restore context
 	ctx.restore();
+	// curtain color
+	ctx.fillStyle = "red";
+	// draw curtain
+	ctx.fillRect(0, 0, Number(start), canvas.height);
+	ctx.fillRect(Number(stop)+1, 0, canvas.width-Number(stop), canvas.height);
 }
 
-
 //--------------------------------------------------
-function drawConvert(canvas, image, orientation, pixel, maxPixel)
+function drawConvert(canvas, image, orientation, pixel, maxPixel,gamma,cut)
 {
 	// context
 	var ctx = canvas.getContext("2d");
@@ -72,26 +76,6 @@ function drawConvert(canvas, image, orientation, pixel, maxPixel)
 	}
 	// restore context
 	ctx.restore();
-
-}
-
-//--------------------------------------------------
-function drawCurtain(canvas, start, stop)
-{
-	// canvas
-	var ctx=canvas.getContext("2d");
-	// curtain color
-	ctx.fillStyle = "red";
-	// draw curtain
-	ctx.fillRect(0, 0, Number(start), canvas.height);
-	ctx.fillRect(Number(stop)+1, 0, canvas.width-Number(stop), canvas.height);
-}
-
-//--------------------------------------------------
-function drawGamma(canvas, gamma)
-{
-	// context
-	var ctx = canvas.getContext("2d");
 	// store canvas in data
 	var imageData = ctx.getImageData(0.0, 0.0, canvas.width, canvas.height);
 	var data = imageData.data;
@@ -100,18 +84,6 @@ function drawGamma(canvas, gamma)
 	{
 		data[i] = 255 * Math.pow((data[i] / 255), gamma);
 	}
-	// put data in canvas
-	ctx.putImageData(imageData, 0, 0);
-}
-
-//--------------------------------------------------
-function drawCut(canvas, cut)
-{
-	// context
-	var ctx = canvas.getContext("2d");
-	// store canvas in data
-	var imageData = ctx.getImageData(0.0, 0.0, canvas.width, canvas.height);
-	var data = imageData.data;
 	//cut the line
 	for (var i = 0; i < data.length; i += 4)
 	{
