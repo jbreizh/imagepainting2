@@ -25,16 +25,18 @@ function toggle(e) {
 // Collapse event--------------------------------------------------
 document.getElementById("collapseActions").addEventListener('click', function() { collapseTable("actions");}, false);
 document.getElementById("collapseSettings").addEventListener('click', function() { collapseTable("settings");}, false);
-document.getElementById("collapseUpload").addEventListener('click', function() { collapseTable("upload");}, false);
+document.getElementById("collapseConvert").addEventListener('click', function() { collapseTable("convert");}, false);
+document.getElementById("collapseGenerate").addEventListener('click', function() { collapseTable("generate");}, false);
 document.getElementById("collapseSystem").addEventListener('click', function() { collapseTable("system");}, false);
 document.getElementById("collapseActions").addEventListener('click', toggle, false);
 document.getElementById("collapseSettings").addEventListener('click', toggle, false);
-document.getElementById("collapseUpload").addEventListener('click', toggle, false);
+document.getElementById("collapseConvert").addEventListener('click', toggle, false);
+document.getElementById("collapseGenerate").addEventListener('click', toggle, false);
 document.getElementById("collapseSystem").addEventListener('click', toggle, false);
 
 // Variable
 var address = "";
-//var address = "http://192.168.6.55";
+//var address = "http://192.168.27.55";
 var FILELIST = new Object();
 var BITMAP = new Object();
 var PARAMETER = new Object();
@@ -43,8 +45,8 @@ var SYSTEM = new Object();
 //--------------------------------------------------
 function updateStatus(message, color)
 {
-		if (document.getElementById("textStatus") != null) document.getElementById("textStatus").innerHTML = message;
-		if (document.getElementById("textStatus") != null) document.getElementById("textStatus").style.color = color;
+	if (document.getElementById("textStatus") != null) document.getElementById("textStatus").innerHTML = message;
+	if (document.getElementById("textStatus") != null) document.getElementById("textStatus").style.color = color;
 }
 
 //--------------------------------------------------
@@ -122,7 +124,7 @@ function upload(blob,name)
 	}
 }
 
-	//--------------------------------------------------
+//--------------------------------------------------
 function requestAction(action)
 {
 	var xhr = new XMLHttpRequest();
@@ -147,7 +149,7 @@ function requestAction(action)
 	xhr.send(null);
 }
 
-	//--------------------------------------------------
+//--------------------------------------------------
 function requestBitmapRead()
 {
 	var xhr = new XMLHttpRequest();
@@ -173,43 +175,43 @@ function requestBitmapRead()
 function setBitmap(jsonString)
 {
 	BITMAP = JSON.parse(jsonString);
-		// set actions values
-	if (document.getElementById("sliderStart") != null)
+	// set actions values
+	if (document.getElementById("selectAction") != null) document.getElementById("selectAction").value = BITMAP["bmpPath"];
+	//if (document.getElementById("btnActionDownload") != null) document.getElementById("btnActionDownload").disabled = !BITMAP["isbmpload"];
+	//if (document.getElementById("btnActionDelete") != null) document.getElementById("btnActionDelete").disabled = !BITMAP["isbmpload"];
+	if (document.getElementById("sliderActionStart") != null)
 	{
-		document.getElementById("sliderStart").setAttribute("min", BITMAP["indexMin"]);
-		document.getElementById("sliderStart").setAttribute("max", BITMAP["indexMax"]);
-		document.getElementById("sliderStart").value = BITMAP["indexStart"];
+		document.getElementById("sliderActionStart").setAttribute("min", BITMAP["indexMin"]);
+		document.getElementById("sliderActionStart").setAttribute("max", BITMAP["indexMax"]);
+		document.getElementById("sliderActionStart").value = BITMAP["indexStart"];
+		document.getElementById("sliderActionStart").disabled = !BITMAP["isbmpload"];
 	}
-	if (document.getElementById("textStart") != null) document.getElementById("textStart").innerHTML = BITMAP["indexStart"] + "px";
-	if (document.getElementById("sliderStop") != null)
+	if (document.getElementById("textActionStart") != null) document.getElementById("textActionStart").innerHTML = BITMAP["indexStart"] + "px";
+	if (document.getElementById("sliderActionStop") != null)
 	{
-		document.getElementById("sliderStop").setAttribute("min", BITMAP["indexMin"]);
-		document.getElementById("sliderStop").setAttribute("max", BITMAP["indexMax"]);
-		document.getElementById("sliderStop").value = BITMAP["indexStop"];
+		document.getElementById("sliderActionStop").setAttribute("min", BITMAP["indexMin"]);
+		document.getElementById("sliderActionStop").setAttribute("max", BITMAP["indexMax"]);
+		document.getElementById("sliderActionStop").value = BITMAP["indexStop"];
+		document.getElementById("sliderActionStop").disabled = !BITMAP["isbmpload"];
 	}
-	if (document.getElementById("textStop") != null) document.getElementById("textStop").innerHTML = BITMAP["indexStop"] + "px";
-	if (document.getElementById("sliderDuration") != null)
+	if (document.getElementById("textActionStop") != null) document.getElementById("textActionStop").innerHTML = BITMAP["indexStop"] + "px";
+	if (document.getElementById("sliderActionLength") != null)
 	{
-		document.getElementById("sliderDuration").setAttribute("max",(BITMAP["indexStop"]-BITMAP["indexStart"])*255);
-		document.getElementById("sliderDuration").value = (BITMAP["indexStop"]-BITMAP["indexStart"])*PARAMETER["delay"];
+		document.getElementById("sliderActionLength").setAttribute("max",(BITMAP["indexStop"]-BITMAP["indexStart"])*255);
+		document.getElementById("sliderActionLength").value = (BITMAP["indexStop"]-BITMAP["indexStart"])*PARAMETER["delay"];
 	}
-	if (document.getElementById("textDuration") != null) document.getElementById("textDuration").innerHTML = (BITMAP["indexStop"]-BITMAP["indexStart"])*PARAMETER["delay"] + "ms"
-	if (document.getElementById("selectImage") != null) document.getElementById("selectImage").value = BITMAP["bmpPath"];
-	
-	if (document.getElementById("sliderStart") != null) document.getElementById("sliderStart").disabled = !BITMAP["isbmpload"];
-	if (document.getElementById("sliderStop") != null) document.getElementById("sliderStop").disabled = !BITMAP["isbmpload"];
-	if (document.getElementById("sliderDuration") != null) document.getElementById("sliderDuration").disabled = !BITMAP["isbmpload"];
-	if (document.getElementById("btnBurn") != null) document.getElementById("btnBurn").disabled = !BITMAP["isbmpload"];
-	if (document.getElementById("btnPlay") != null) document.getElementById("btnPlay").disabled = !BITMAP["isbmpload"];
-	
+	if (document.getElementById("sliderActionLength") != null) document.getElementById("sliderActionLength").disabled = !BITMAP["isbmpload"];
+	if (document.getElementById("textActionLength") != null) document.getElementById("textActionLength").innerHTML = (BITMAP["indexStop"]-BITMAP["indexStart"])*PARAMETER["delay"] + "ms"
+	if (document.getElementById("btnActionBurn") != null) document.getElementById("btnActionBurn").disabled = !BITMAP["isbmpload"];
+	if (document.getElementById("btnActionPlay") != null) document.getElementById("btnActionPlay").disabled = !BITMAP["isbmpload"];
 	if(BITMAP["isbmpload"])
 	{
-		imgImage.src= address + "/" + BITMAP["bmpPath"];
+		imgAction.src= address + "/" + BITMAP["bmpPath"];
 	}
 		// it isn't a bitmap
 	else
 	{
-		if (document.getElementById("canvasImage") != null) drawError(document.getElementById("canvasImage"), "Not Load");
+		if (document.getElementById("canvasAction") != null) drawError("Not Load", document.getElementById("canvasAction"));
 	}	
 } 
 
@@ -244,9 +246,9 @@ function requestBitmapWrite()
 function getBitmap()
 {
 	// get actions values
-	if (document.getElementById("sliderStart") != null) BITMAP.indexStart = document.getElementById("sliderStart").value;
-	if (document.getElementById("sliderStop") != null) BITMAP.indexStop = document.getElementById("sliderStop").value;
-	if (document.getElementById("selectImage") != null) BITMAP.bmpPath = document.getElementById("selectImage").value;
+	if (document.getElementById("sliderActionStart") != null) BITMAP.indexStart = document.getElementById("sliderActionStart").value;
+	if (document.getElementById("sliderActionStop") != null) BITMAP.indexStop = document.getElementById("sliderActionStop").value;
+	if (document.getElementById("selectAction") != null) BITMAP.bmpPath = document.getElementById("selectAction").value;
 	// convert json to string
 	return JSON.stringify(BITMAP);
 }
@@ -277,9 +279,9 @@ function requestParameterRead()
 function setParameter(jsonString)
 {
 	PARAMETER = JSON.parse(jsonString);
-		// set settings values
-	if (document.getElementById("sliderDuration") != null) document.getElementById("sliderDuration").value = (BITMAP["indexStop"]-BITMAP["indexStart"])*PARAMETER["delay"];
-	if (document.getElementById("textDuration") != null) document.getElementById("textDuration").innerHTML = (BITMAP["indexStop"]-BITMAP["indexStart"])*PARAMETER["delay"] + "ms";
+	// set settings values
+	if (document.getElementById("sliderActionLength") != null) document.getElementById("sliderActionLength").value = (BITMAP["indexStop"]-BITMAP["indexStart"])*PARAMETER["delay"];
+	if (document.getElementById("textActionLength") != null) document.getElementById("textActionLength").innerHTML = (BITMAP["indexStop"]-BITMAP["indexStart"])*PARAMETER["delay"] + "ms";
 	if (document.getElementById("sliderDelay") != null) document.getElementById("sliderDelay").value = PARAMETER["delay"];
 	if (document.getElementById("textDelay") != null) document.getElementById("textDelay").innerHTML = PARAMETER["delay"] + "ms";
 	if (document.getElementById("sliderBrightness") != null) document.getElementById("sliderBrightness").value = PARAMETER["brightness"];
@@ -294,12 +296,18 @@ function setParameter(jsonString)
 	if (document.getElementById("ckBounce") != null) document.getElementById("ckBounce").checked  = PARAMETER["isbounce"];
 	if (document.getElementById("ckRepeat") != null && document.getElementById("ckBounce") != null) updateCheckbox(document.getElementById("ckRepeat"),document.getElementById("ckBounce"));
 	if (document.getElementById("ckBounce") != null && document.getElementById("ckRepeat") != null) updateCheckbox(document.getElementById("ckBounce"),document.getElementById("ckRepeat"));
-	if (document.getElementById("sliderPause") != null) document.getElementById("sliderPause").value = PARAMETER["pause"];
-	if (document.getElementById("textPause") != null) document.getElementById("textPause").innerHTML = PARAMETER["pause"] + "px";
-	if (document.getElementById("ckPause") != null) document.getElementById("ckPause").checked  = PARAMETER["ispause"];
-	if (document.getElementById("ckCut") != null) document.getElementById("ckCut").checked  = PARAMETER["iscut"];
-	if (document.getElementById("ckPause") != null && document.getElementById("ckCut") != null) updateCheckbox(document.getElementById("ckPause"),document.getElementById("ckCut"));
-	if (document.getElementById("ckCut") != null && document.getElementById("ckPause") != null) updateCheckbox(document.getElementById("ckCut"),document.getElementById("ckPause"));
+	if (document.getElementById("sliderVcut") != null) document.getElementById("sliderVcut").value = PARAMETER["vcut"];
+	if (document.getElementById("textVcut") != null) document.getElementById("textVcut").innerHTML = PARAMETER["vcut"] + "px";
+	if (document.getElementById("ckVcutOff") != null) document.getElementById("ckVcutOff").checked  = PARAMETER["isvcutoff"];
+	if (document.getElementById("ckVcutColor") != null) document.getElementById("ckVcutColor").checked  = PARAMETER["isvcutcolor"];
+	if (document.getElementById("ckVcutOff") != null && document.getElementById("ckVcutColor") != null) updateCheckbox(document.getElementById("ckVcutOff"),document.getElementById("ckVcutColor"));
+	if (document.getElementById("ckVcutColor") != null && document.getElementById("ckVcutOff") != null) updateCheckbox(document.getElementById("ckVcutColor"),document.getElementById("ckVcutOff"));
+	if (document.getElementById("sliderHcut") != null) document.getElementById("sliderHcut").value = PARAMETER["hcut"];
+	if (document.getElementById("textHcut") != null) document.getElementById("textHcut").innerHTML = PARAMETER["hcut"] + "px";
+	if (document.getElementById("ckHcutOff") != null) document.getElementById("ckHcutOff").checked  = PARAMETER["ishcutoff"];
+	if (document.getElementById("ckHcutColor") != null) document.getElementById("ckHcutColor").checked  = PARAMETER["ishcutcolor"];
+	if (document.getElementById("ckHcutOff") != null && document.getElementById("ckHcutColor") != null) updateCheckbox(document.getElementById("ckHcutOff"),document.getElementById("ckHcutColor"));
+	if (document.getElementById("ckHcutColor") != null && document.getElementById("ckHcutOff") != null) updateCheckbox(document.getElementById("ckHcutColor"),document.getElementById("ckHcutOff"));
 	if (document.getElementById("pickerColor") != null) document.getElementById("pickerColor").value = PARAMETER["color"];
 	if (document.getElementById("ckEndOff") != null) document.getElementById("ckEndOff").checked  = PARAMETER["isendoff"];
 	if (document.getElementById("ckEndColor") != null) document.getElementById("ckEndColor").checked  = PARAMETER["isendcolor"];
@@ -337,7 +345,7 @@ function requestParameterWrite()
 //--------------------------------------------------
 function getParameter()
 {
-		// get PARAMETER values
+	// get PARAMETER values
 	if (document.getElementById("sliderDelay") != null) PARAMETER.delay = document.getElementById("sliderDelay").value;
 	if (document.getElementById("sliderBrightness") != null) PARAMETER.brightness = document.getElementById("sliderBrightness").value;
 	if (document.getElementById("sliderCountdown") != null) PARAMETER.countdown = document.getElementById("sliderCountdown").value;
@@ -346,13 +354,16 @@ function getParameter()
 	if (document.getElementById("ckInvert") != null) PARAMETER.isinvert = document.getElementById("ckInvert").checked;
 	if (document.getElementById("ckRepeat") != null) PARAMETER.isrepeat = document.getElementById("ckRepeat").checked;
 	if (document.getElementById("ckBounce") != null) PARAMETER.isbounce = document.getElementById("ckBounce").checked;
-	if (document.getElementById("sliderPause") != null) PARAMETER.pause = document.getElementById("sliderPause").value;
-	if (document.getElementById("ckPause") != null) PARAMETER.ispause = document.getElementById("ckPause").checked;
-	if (document.getElementById("ckCut") != null) PARAMETER.iscut = document.getElementById("ckCut").checked;
+	if (document.getElementById("sliderVcut") != null) PARAMETER.vcut = document.getElementById("sliderVcut").value;
+	if (document.getElementById("ckVcutOff") != null) PARAMETER.isvcutoff = document.getElementById("ckVcutOff").checked;
+	if (document.getElementById("ckVcutColor") != null) PARAMETER.isvcutcolor = document.getElementById("ckVcutColor").checked;
+	if (document.getElementById("sliderHcut") != null) PARAMETER.hcut = document.getElementById("sliderHcut").value;
+	if (document.getElementById("ckHcutOff") != null) PARAMETER.ishcutoff = document.getElementById("ckHcutOff").checked;
+	if (document.getElementById("ckHcutColor") != null) PARAMETER.ishcutcolor = document.getElementById("ckHcutColor").checked;
 	if (document.getElementById("pickerColor") != null) PARAMETER.color = document.getElementById("pickerColor").value;
 	if (document.getElementById("ckEndOff") != null) PARAMETER.isendoff = document.getElementById("ckEndOff").checked;
 	if (document.getElementById("ckEndColor") != null) PARAMETER.isendcolor = document.getElementById("ckEndColor").checked;
-		// convert json to string
+	// convert json to string
 	return JSON.stringify(PARAMETER);
 }
 
@@ -433,22 +444,22 @@ function requestSystemRead()
 function setSystem(jsonString)
 {
 	SYSTEM = JSON.parse(jsonString);
-	// set parameters values
-	if (document.getElementById("sliderPixels") !=  null)
+	// set convert values
+	if (document.getElementById("sliderConvertPixels") !=  null)
 	{
-		document.getElementById("sliderPixels").setAttribute("max",SYSTEM["numPixels"]);
-		document.getElementById("sliderPixels").value = SYSTEM["numPixels"];
-		if (document.getElementById("textPixels") != null) document.getElementById("textPixels").innerHTML = document.getElementById("sliderPixels").value + "px";
+		document.getElementById("sliderConvertPixels").setAttribute("max",SYSTEM["numPixels"]);
+		document.getElementById("sliderConvertPixels").value = SYSTEM["numPixels"];
 	}
-	//
-	if (document.getElementById("sliderLineCut") != null)
+	if (document.getElementById("textConvertPixels") != null) document.getElementById("textConvertPixels").innerHTML = SYSTEM["numPixels"] + "px";
+	// set generate values
+	if (document.getElementById("sliderGeneratePixels") !=  null)
 	{
-		document.getElementById("sliderLineCut").setAttribute("max",25);
-		document.getElementById("sliderLineCut").value = 0;
-		if (document.getElementById("textLineCut") != null) document.getElementById("textLineCut").innerHTML = document.getElementById("sliderLineCut").value + "px";
+		document.getElementById("sliderGeneratePixels").setAttribute("max",SYSTEM["numPixels"]);
+		document.getElementById("sliderGeneratePixels").value = SYSTEM["numPixels"];
 	}
-		//
-	if (document.getElementById("textLedNumber") != null) document.getElementById("textLedNumber").innerHTML = SYSTEM["numPixels"] + "px";
+	if (document.getElementById("textGeneratePixels") != null) document.getElementById("textGeneratePixels").innerHTML = SYSTEM["numPixels"] + "px";
+	// set system values
+	if (document.getElementById("textSystemPixels") != null) document.getElementById("textSystemPixels").innerHTML = SYSTEM["numPixels"] + "px";
 	// set chart parameters
 	if (document.getElementById("canvasSystem") != null)
 	{
@@ -490,14 +501,14 @@ function requestFileList()
 function setFileList(jsonString)
 {
 	FILELIST = JSON.parse(jsonString);
-	if (document.getElementById("selectImage") !=  null)
+	if (document.getElementById("selectAction") !=  null)
 	{
-		document.getElementById("selectImage").options.length = FILELIST.fileList.length;
+		document.getElementById("selectAction").options.length = FILELIST.fileList.length;
 		
 		for (var i = 0; i < FILELIST.fileList.length; i++)
 		{
-			document.getElementById("selectImage").options[i].value = FILELIST.fileList[i];
-			document.getElementById("selectImage").options[i].text = FILELIST.fileList[i]; 
+			document.getElementById("selectAction").options[i].value = FILELIST.fileList[i];
+			document.getElementById("selectAction").options[i].text = FILELIST.fileList[i]; 
 		}
 	}
 }
@@ -568,76 +579,76 @@ function requestFileDelete(fileName)
 
 
 // Actions Variable--------------------------------------------------
-var imgImage = new Image;
-var selectImage = document.getElementById("selectImage");
-var canvasImage =document.getElementById("canvasImage");
-var btnDelete = document.getElementById("btnDelete");
-var btnDownload = document.getElementById("btnDownload");
-var sliderStart = document.getElementById("sliderStart");
-var textStart = document.getElementById("textStart");
-var sliderStop = document.getElementById("sliderStop");
-var textStop = document.getElementById("textStop");
-var sliderDuration = document.getElementById("sliderDuration");
-var textDuration = document.getElementById("textDuration");
-var btnLight = document.getElementById("btnLight");
-var btnBurn = document.getElementById("btnBurn");
-var btnStop = document.getElementById("btnStop");
-var btnPlay = document.getElementById("btnPlay");
+var imgAction = new Image;
+var selectAction = document.getElementById("selectAction");
+var canvasAction =document.getElementById("canvasAction");
+var btnActionDelete = document.getElementById("btnActionDelete");
+var btnActionDownload = document.getElementById("btnActionDownload");
+var sliderActionStart = document.getElementById("sliderActionStart");
+var textActionStart = document.getElementById("textActionStart");
+var sliderActionStop = document.getElementById("sliderActionStop");
+var textActionStop = document.getElementById("textActionStop");
+var sliderActionLength = document.getElementById("sliderActionLength");
+var textActionLength = document.getElementById("textActionLength");
+var btnActionLight = document.getElementById("btnActionLight");
+var btnActionBurn = document.getElementById("btnActionBurn");
+var btnActionStop = document.getElementById("btnActionStop");
+var btnActionPlay = document.getElementById("btnActionPlay");
 
 // Actions Event--------------------------------------------------
-selectImage.addEventListener('change', requestBitmapWrite, false);
-imgImage.addEventListener('load', function() {drawImage(canvasImage,imgImage,sliderStart.value,sliderStop.value);}, false);
-btnDelete.addEventListener('click', function() {requestFileDelete(selectImage.value);}, false);
-btnDownload.addEventListener('click', function() {download(address + "/" + selectImage.value,selectImage.value.substring(1));}, false);
-sliderStart.addEventListener('input', updateStart, false);
-sliderStart.addEventListener('change', requestBitmapWrite, false);
-sliderStop.addEventListener('input', updateStop, false);
-sliderStop.addEventListener('change', requestBitmapWrite, false);
-sliderDuration.addEventListener('input', updateDuration, false);
-sliderDuration.addEventListener('change', requestParameterWrite, false);
-btnLight.addEventListener('click', function() {requestAction("/light");}, false);
-btnBurn.addEventListener('click', function() {requestAction("/burn");}, false);
-btnStop.addEventListener('click', function() {requestAction("/stop");}, false);
-btnPlay.addEventListener('click', function() {requestAction("/play");}, false);
+selectAction.addEventListener('change', requestBitmapWrite, false);
+imgAction.addEventListener('load', function() {drawAction(imgAction,canvasAction,sliderActionStart.value,sliderActionStop.value);}, false);
+btnActionDelete.addEventListener('click', function() {requestFileDelete(selectAction.value);}, false);
+btnActionDownload.addEventListener('click', function() {download(address + "/" + selectAction.value,selectAction.value.substring(1));}, false);
+sliderActionStart.addEventListener('input', updateStart, false);
+sliderActionStart.addEventListener('change', requestBitmapWrite, false);
+sliderActionStop.addEventListener('input', updateStop, false);
+sliderActionStop.addEventListener('change', requestBitmapWrite, false);
+sliderActionLength.addEventListener('input', updateDuration, false);
+sliderActionLength.addEventListener('change', requestParameterWrite, false);
+btnActionLight.addEventListener('click', function() {requestAction("/light");}, false);
+btnActionBurn.addEventListener('click', function() {requestAction("/burn");}, false);
+btnActionStop.addEventListener('click', function() {requestAction("/stop");}, false);
+btnActionPlay.addEventListener('click', function() {requestAction("/play");}, false);
 
 //--------------------------------------------------
 function updateStart()
 {
-	// update textStart < textStop
-	sliderStop.value = Math.max(sliderStart.value,sliderStop.value);
-	textStart.innerHTML = sliderStart.value + "px";
-	textStop.innerHTML = sliderStop.value + "px";
+	// update textActionStart < textActionStop
+	sliderActionStop.value = Math.max(sliderActionStart.value,sliderActionStop.value);
+	textActionStart.innerHTML = sliderActionStart.value + "px";
+	textActionStop.innerHTML = sliderActionStop.value + "px";
 	//update duration
-	sliderDuration.setAttribute("max",(sliderStop.value-sliderStart.value)*255);
-	sliderDuration.value = (sliderStop.value-sliderStart.value)*sliderDelay.value;
-	textDuration.innerHTML = sliderDuration.value + "ms";
+	sliderActionLength.setAttribute("max",(sliderActionStop.value-sliderActionStart.value)*255);
+	sliderActionLength.value = (sliderActionStop.value-sliderActionStart.value)*sliderDelay.value;
+	textActionLength.innerHTML = sliderActionLength.value + "ms";
 	// update canvas
-	drawImage(canvasImage,imgImage,sliderStart.value,sliderStop.value);
+	drawAction(imgAction,canvasAction,sliderActionStart.value,sliderActionStop.value);
 }
 
 //--------------------------------------------------
 function updateStop()
 {
 	// check if start < stop
-	sliderStart.value = Math.min(sliderStart.value,sliderStop.value);
-	// update textStart textStop
-	textStart.innerHTML = sliderStart.value + "px";
-	textStop.innerHTML = sliderStop.value + "px";
+	sliderActionStart.value = Math.min(sliderActionStart.value,sliderActionStop.value);
+	// update textActionStart textActionStop
+	textActionStart.innerHTML = sliderActionStart.value + "px";
+	textActionStop.innerHTML = sliderActionStop.value + "px";
 	//update duration
-	sliderDuration.setAttribute("max",(sliderStop.value-sliderStart.value)*255);
-	sliderDuration.value = (sliderStop.value-sliderStart.value)*sliderDelay.value;
-	textDuration.innerHTML = sliderDuration.value + "ms";
+	sliderActionLength.setAttribute("max",(sliderActionStop.value-sliderActionStart.value)*255);
+	sliderActionLength.value = (sliderActionStop.value-sliderActionStart.value)*sliderDelay.value;
+	textActionLength.innerHTML = sliderActionLength.value + "ms";
 	// update canvas
-	drawImage(canvasImage,imgImage,sliderStart.value,sliderStop.value);
+	drawAction(imgAction,canvasAction,sliderActionStart.value,sliderActionStop.value);
 }
 
 //--------------------------------------------------
 function updateDuration()
 {
 	// update duration
-	textDuration.innerHTML = sliderDuration.value + "ms";
+	textActionLength.innerHTML = sliderActionLength.value + "ms";
 	// update delay
-	sliderDelay.value = sliderDuration.value/(sliderStop.value-sliderStart.value);
+	sliderDelay.value = sliderActionLength.value/(sliderActionStop.value-sliderActionStart.value);
 	textDelay.innerHTML = sliderDelay.value + "ms";
 }
 
@@ -651,91 +662,81 @@ var sliderCountdown = document.getElementById("sliderCountdown");
 var textCountdown = document.getElementById("textCountdown");
 var sliderRepeat = document.getElementById("sliderRepeat");
 var textRepeat = document.getElementById("textRepeat");
-var sliderPause = document.getElementById("sliderPause");
-var textPause = document.getElementById("textPause");
+var sliderVcut = document.getElementById("sliderVcut");
+var textVcut = document.getElementById("textVcut");
+var sliderHcut = document.getElementById("sliderHcut");
+var textHcut = document.getElementById("textHcut");
 var pickerColor = document.getElementById("pickerColor");
 var ckCountdown = document.getElementById("ckCountdown");
 var ckInvert = document.getElementById("ckInvert");
 var ckRepeat = document.getElementById("ckRepeat");
 var ckBounce = document.getElementById("ckBounce");
-var ckPause = document.getElementById("ckPause");
-var ckCut = document.getElementById("ckCut");
+var ckVcutOff = document.getElementById("ckVcutOff");
+var ckVcutColor = document.getElementById("ckVcutColor");
+var ckHcutOff = document.getElementById("ckHcutOff");
+var ckHcutColor = document.getElementById("ckHcutColor");
 var ckEndOff = document.getElementById("ckEndOff");
 var ckEndColor = document.getElementById("ckEndColor");
 var btnSave = document.getElementById("btnSave");
 var btnRestore = document.getElementById("btnRestore");
 
 // Settings Event--------------------------------------------------
-sliderDelay.addEventListener('input', updateDelay, false);
+sliderDelay.addEventListener('input', function() { textDelay.innerHTML = sliderDelay.value + "ms"; sliderActionLength.value = (sliderActionStop.value-sliderActionStart.value)*sliderDelay.value; textActionLength.innerHTML = sliderActionLength.value + "ms";}, false);
 sliderBrightness.addEventListener('input', function() {textBrightness.innerHTML = sliderBrightness.value + "%";}, false);
 sliderCountdown.addEventListener('input', function() {textCountdown.innerHTML = sliderCountdown.value + "ms";}, false);
 sliderRepeat.addEventListener('input', function() {textRepeat.innerHTML = sliderRepeat.value + "x";}, false);
-sliderPause.addEventListener('input', function() {textPause.innerHTML = sliderPause.value + "px";}, false);
+sliderVcut.addEventListener('input', function() {textVcut.innerHTML = sliderVcut.value + "px";}, false);
+sliderHcut.addEventListener('input', function() {textHcut.innerHTML = sliderHcut.value + "px";}, false);
 sliderDelay.addEventListener('change', requestParameterWrite, false);
 sliderBrightness.addEventListener('change', requestParameterWrite, false);
 sliderCountdown.addEventListener('change', requestParameterWrite, false);
 sliderRepeat.addEventListener('change', requestParameterWrite, false);
-sliderPause.addEventListener('change', requestParameterWrite, false);
+sliderVcut.addEventListener('change', requestParameterWrite, false);
+sliderHcut.addEventListener('change', requestParameterWrite, false);
 pickerColor.addEventListener('change', requestParameterWrite, false);
 ckRepeat.addEventListener('click', function() {updateCheckbox(ckRepeat,ckBounce);}, false);
 ckBounce.addEventListener('click', function() {updateCheckbox(ckBounce,ckRepeat);}, false);
-ckPause.addEventListener('click', function() {updateCheckbox(ckPause,ckCut);}, false);
-ckCut.addEventListener('click', function() {updateCheckbox(ckCut,ckPause);}, false);
+ckVcutOff.addEventListener('click', function() {updateCheckbox(ckVcutOff,ckVcutColor);}, false);
+ckVcutColor.addEventListener('click', function() {updateCheckbox(ckVcutColor,ckVcutOff);}, false);
+ckHcutOff.addEventListener('click', function() {updateCheckbox(ckHcutOff,ckHcutColor);}, false);
+ckHcutColor.addEventListener('click', function() {updateCheckbox(ckHcutColor,ckHcutOff);}, false);
 ckEndColor.addEventListener('click', function() {updateCheckbox(ckEndColor,ckEndOff);}, false);
 ckEndOff.addEventListener('click', function() {updateCheckbox(ckEndOff,ckEndColor);}, false);
 ckCountdown.addEventListener('click', requestParameterWrite, false);
 ckInvert.addEventListener('click', requestParameterWrite, false);
 ckRepeat.addEventListener('click', requestParameterWrite, false);
 ckBounce.addEventListener('click', requestParameterWrite, false);
-ckPause.addEventListener('click', requestParameterWrite, false);
-ckCut.addEventListener('click', requestParameterWrite, false);
+ckVcutOff.addEventListener('click', requestParameterWrite, false);
+ckVcutColor.addEventListener('click', requestParameterWrite, false);
+ckHcutOff.addEventListener('click', requestParameterWrite, false);
+ckHcutColor.addEventListener('click', requestParameterWrite, false);
 ckEndColor.addEventListener('click', requestParameterWrite, false);
 ckEndOff.addEventListener('click', requestParameterWrite, false);
 btnSave.addEventListener('click', requestParameterSave, false);
 btnRestore.addEventListener('click', requestParameterRestore, false);
 
-//--------------------------------------------------
-function updateDelay()
-{
-	// update delay
-	textDelay.innerHTML = sliderDelay.value + "ms";
-	// update duration
-	sliderDuration.value = (sliderStop.value-sliderStart.value)*sliderDelay.value;
-	textDuration.innerHTML = sliderDuration.value + "ms";
-}
-// Upload Variable--------------------------------------------------
+// Convert Variable--------------------------------------------------
 var imgConvert = new Image;
 var canvasConvert = document.getElementById("canvasConvert");
 var selectConvert = document.getElementById("selectConvert");
-var selectGamma = document.getElementById("selectGamma");
-var ckBottomTop = document.getElementById("ckBottomTop");
-var sliderPixels = document.getElementById("sliderPixels");
-var textPixels = document.getElementById("textPixels");
-var sliderLineCut = document.getElementById("sliderLineCut");
-var textLineCut = document.getElementById("textLineCut");
-var btnUploadOriginal = document.getElementById("btnUploadOriginal");
-var btnUploadConvert = document.getElementById("btnUploadConvert");
-var btnDownloadConvert = document.getElementById("btnDownloadConvert");
+var selectConvertGamma = document.getElementById("selectConvertGamma");
+var selectConvertOrientation = document.getElementById("selectConvertOrientation");
+var sliderConvertPixels = document.getElementById("sliderConvertPixels");
+var textConvertPixels = document.getElementById("textConvertPixels");
+var btnConvertOriginal = document.getElementById("btnConvertOriginal");
+var btnConvertUpload = document.getElementById("btnConvertUpload");
+var btnConvertDownload = document.getElementById("btnConvertDownload");
 
-// Upload event--------------------------------------------------
+// Convert event--------------------------------------------------
 selectConvert.addEventListener('change', setImgConvert, false);
-imgConvert.addEventListener('load', function() {drawConvert(canvasConvert, imgConvert, ckBottomTop.checked, sliderPixels.value, sliderPixels.getAttribute("max"), selectGamma.value, sliderLineCut.value);}, false);
-selectGamma.addEventListener('change', function() {drawConvert(canvasConvert, imgConvert, ckBottomTop.checked, sliderPixels.value, sliderPixels.getAttribute("max"), selectGamma.value, sliderLineCut.value);}, false);
-ckBottomTop.addEventListener('click', function() {drawConvert(canvasConvert, imgConvert, ckBottomTop.checked, sliderPixels.value, sliderPixels.getAttribute("max"), selectGamma.value, sliderLineCut.value);}, false);
-sliderPixels.addEventListener('input', function() {textPixels.innerHTML = sliderPixels.value + "px";}, false);
-sliderPixels.addEventListener('change', function() {drawConvert(canvasConvert, imgConvert, ckBottomTop.checked, sliderPixels.value, sliderPixels.getAttribute("max"), selectGamma.value, sliderLineCut.value);}, false);
-sliderLineCut.addEventListener('input', function() {textLineCut.innerHTML = sliderLineCut.value + "px";}, false);
-sliderLineCut.addEventListener('change', function() {drawConvert(canvasConvert, imgConvert, ckBottomTop.checked, sliderPixels.value, sliderPixels.getAttribute("max"), selectGamma.value, sliderLineCut.value);}, false);
-btnUploadOriginal.addEventListener('click', function() {upload(selectConvert.files[0],trimFileName(selectConvert.files[0].name, ""));}, false);
-btnDownloadConvert.addEventListener('click', function() {download(CanvasToBMP.toDataURL(canvasConvert),trimFileName(selectConvert.files[0].name, "bmp"));}, false);
-btnUploadConvert.addEventListener('click', function() {upload(CanvasToBMP.toBlob(canvasConvert),trimFileName(selectConvert.files[0].name, "bmp"));}, false);
-
-// Main --------------------------------------------------
-requestSystemRead();
-requestFileList();
-requestParameterRead();
-requestBitmapRead();
-setImgConvert();
+imgConvert.addEventListener('load', function() {drawConvert(imgConvert, canvasConvert, selectConvertOrientation.value, selectConvertGamma.value, sliderConvertPixels.value, sliderConvertPixels.getAttribute("max"));}, false);
+selectConvertGamma.addEventListener('change', function() {drawConvert(imgConvert, canvasConvert, selectConvertOrientation.value, selectConvertGamma.value, sliderConvertPixels.value, sliderConvertPixels.getAttribute("max"));}, false);
+selectConvertOrientation.addEventListener('change', function() {drawConvert(imgConvert, canvasConvert, selectConvertOrientation.value, selectConvertGamma.value, sliderConvertPixels.value, sliderConvertPixels.getAttribute("max"));}, false);
+sliderConvertPixels.addEventListener('input', function() {textConvertPixels.innerHTML = sliderConvertPixels.value + "px";}, false);
+sliderConvertPixels.addEventListener('change', function() {drawConvert(imgConvert, canvasConvert, selectConvertOrientation.value, selectConvertGamma.value, sliderConvertPixels.value, sliderConvertPixels.getAttribute("max"));}, false);
+btnConvertOriginal.addEventListener('click', function() {upload(selectConvert.files[0],trimFileName(selectConvert.files[0].name, ""));}, false);
+btnConvertUpload.addEventListener('click', function() {upload(CanvasToBMP.toBlob(canvasConvert),trimFileName(selectConvert.files[0].name, "bmp"));}, false);
+btnConvertDownload.addEventListener('click', function() {download(CanvasToBMP.toDataURL(canvasConvert),trimFileName(selectConvert.files[0].name, "bmp"));}, false);
 
 //--------------------------------------------------
 function setImgConvert()
@@ -744,16 +745,15 @@ function setImgConvert()
 	if (selectConvert.files.length == 0)
 	{
 		// print the error
-		drawError(canvasConvert, "No File");
+		drawError("No File",canvasConvert);
 		// options
-		selectGamma.setAttribute('disabled', '');
-		ckBottomTop.setAttribute('disabled', '');
-		sliderPixels.setAttribute('disabled', '');
-		sliderLineCut.setAttribute('disabled', '');
+		selectConvertGamma.setAttribute('disabled', '');
+		selectConvertOrientation.setAttribute('disabled', '');
+		sliderConvertPixels.setAttribute('disabled', '');
 		// actions
-		btnUploadOriginal.setAttribute('disabled', '');
-		btnUploadConvert.setAttribute('disabled', '');
-		btnDownloadConvert.setAttribute('disabled', '');
+		btnConvertOriginal.setAttribute('disabled', '');
+		btnConvertUpload.setAttribute('disabled', '');
+		btnConvertDownload.setAttribute('disabled', '');
 		return;
 	}
 	// test the selection
@@ -763,16 +763,15 @@ function setImgConvert()
 	if (!imageType.test(file.type))
 	{
 		// print the error
-		drawError(canvasConvert, "No Convert");
+		drawError("No Convert",canvasConvert);
 		// options
-		selectGamma.setAttribute('disabled', '');
-		ckBottomTop.setAttribute('disabled', '');
-		sliderPixels.setAttribute('disabled', '');
-		sliderLineCut.setAttribute('disabled', '');
+		selectConvertGamma.setAttribute('disabled', '');
+		selectConvertOrientation.setAttribute('disabled', '');
+		sliderConvertPixels.setAttribute('disabled', '');
 		// actions
-		btnUploadOriginal.removeAttribute('disabled', '');
-		btnUploadConvert.setAttribute('disabled', '');
-		btnDownloadConvert.setAttribute('disabled', '');
+		btnConvertOriginal.removeAttribute('disabled', '');
+		btnConvertUpload.setAttribute('disabled', '');
+		btnConvertDownload.setAttribute('disabled', '');
 	}
 	// selection is an image
 	else
@@ -783,13 +782,46 @@ function setImgConvert()
 		reader.onload = (function(aImg) { return function(e) { aImg.src = e.target.result; }; })(imgConvert); 
 		reader.readAsDataURL(file);
 		// options
-		selectGamma.removeAttribute('disabled', '');
-		ckBottomTop.removeAttribute('disabled', '');
-		sliderPixels.removeAttribute('disabled', '');
-		sliderLineCut.removeAttribute('disabled', '');
+		selectConvertGamma.removeAttribute('disabled', '');
+		selectConvertOrientation.removeAttribute('disabled', '');
+		sliderConvertPixels.removeAttribute('disabled', '');
 		// actions
-		btnUploadOriginal.removeAttribute('disabled', '');
-		btnUploadConvert.removeAttribute('disabled', '');
-		btnDownloadConvert.removeAttribute('disabled', '');
+		btnConvertOriginal.removeAttribute('disabled', '');
+		btnConvertUpload.removeAttribute('disabled', '');
+		btnConvertDownload.removeAttribute('disabled', '');
 	}
 }
+
+// Generate Variable--------------------------------------------------
+var canvasGenerateTemp = document.createElement("canvas");
+var canvasGenerate = document.getElementById("canvasGenerate");
+var selectGenerate = document.getElementById("selectGenerate");
+var selectGenerateGamma = document.getElementById("selectGenerateGamma");
+var selectGenerateOrientation = document.getElementById("selectGenerateOrientation");
+var sliderGeneratePixels = document.getElementById("sliderGeneratePixels");
+var textGeneratePixels = document.getElementById("textGeneratePixels");
+var btnGenerateRefresh = document.getElementById("btnGenerateRefresh");
+var btnGenerateUpload = document.getElementById("btnGenerateUpload");
+var btnGenerateDownload = document.getElementById("btnGenerateDownload");
+		
+// Generate event--------------------------------------------------
+selectGenerate.addEventListener('change', function() {generate(canvasGenerateTemp, selectGenerate.value); drawConvert(canvasGenerateTemp, canvasGenerate, selectGenerateOrientation.value, selectGenerateGamma.value, sliderGeneratePixels.value, sliderGeneratePixels.getAttribute("max"));}, false);
+selectGenerateGamma.addEventListener('change', function() {drawConvert(canvasGenerateTemp, canvasGenerate, selectGenerateOrientation.value, selectGenerateGamma.value, sliderGeneratePixels.value, sliderGeneratePixels.getAttribute("max"));}, false);
+selectGenerateOrientation.addEventListener('change', function() {drawConvert(canvasGenerateTemp, canvasGenerate, selectGenerateOrientation.value, selectGenerateGamma.value, sliderGeneratePixels.value, sliderGeneratePixels.getAttribute("max"));}, false);
+sliderGeneratePixels.addEventListener('input', function() {textGeneratePixels.innerHTML = sliderGeneratePixels.value + "px";}, false);
+sliderGeneratePixels.addEventListener('change', function() {drawConvert(canvasGenerateTemp, canvasGenerate, selectGenerateOrientation.value, selectGenerateGamma.value, sliderGeneratePixels.value, sliderGeneratePixels.getAttribute("max"));}, false);
+btnGenerateRefresh.addEventListener('click', function() {generate(canvasGenerateTemp, selectGenerate.value); drawConvert(canvasGenerateTemp, canvasGenerate, selectGenerateOrientation.value, selectGenerateGamma.value, sliderGeneratePixels.value, sliderGeneratePixels.getAttribute("max"));}, false);
+btnGenerateDownload.addEventListener('click', function() {download(CanvasToBMP.toDataURL(canvasGenerate),selectGenerate.value+".bmp");}, false);
+btnGenerateUpload.addEventListener('click', function() {upload(CanvasToBMP.toBlob(canvasGenerate),selectGenerate.value+".bmp");}, false);
+
+// Main --------------------------------------------------
+requestSystemRead();
+requestFileList();
+requestParameterRead();
+requestBitmapRead();
+setImgConvert();
+setTimeout(function(){
+	generate(canvasGenerateTemp, selectGenerate.value);
+	drawConvert(canvasGenerateTemp, canvasGenerate, selectGenerateOrientation.value, selectGenerateGamma.value, sliderGeneratePixels.value, sliderGeneratePixels.getAttribute("max"));
+}, 500);
+

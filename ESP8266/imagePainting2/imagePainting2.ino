@@ -1,7 +1,5 @@
 //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 //#define STA       // Decomment this to use STA mode instead of AP
-//#define DNS       // Decomment this to use DNS
-//#define DEBUGER     // Decomment this to debug the code
 #define BUTTON      // Decomment this to use BUTTON
 #define FEATURE DotStarBgrFeature // Neopixels : NeoGrbFeature / Dotstars : DotStarBgrFeature
 #define METHOD DotStarSpiMethod // Neopixels :Neo800KbpsMethod / Dotstars : DotStarSpiMethod
@@ -15,9 +13,6 @@
 #include <NeoPixelBus.h>
 #include <NeoPixelAnimator.h>
 #include <LittleFS.h>
-#ifdef DNS
-#include <DNSServer.h>
-#endif
 
 // LED --------------
 const int NUMPIXELS = 119;
@@ -37,13 +32,6 @@ const char* ssid = "imagePainting"; // wifi ssid for AP mode
 IPAddress apIP(192, 168, 1, 1); // wifi IP for AP mode
 #endif
 // end WIFI -----------
-
-// DNS --------------
-#ifdef DNS
-DNSServer dnsServer;
-const byte DNS_PORT = 53;
-#endif
-// end DNS -----------
 
 // FS --------------
 fs::File UPLOADFILE; // hold uploaded file
@@ -68,12 +56,17 @@ bool ISCOUNTDOWN = false;
 uint8_t DELAY = 15;
 uint8_t BRIGHTNESS = 25;
 uint8_t REPEAT = 1; uint8_t REPEATCOUNTER;
-bool ISINVERT = false;
+bool ISINVERT = false; bool ISINVERTTEMP;
 bool ISREPEAT = false;
 bool ISBOUNCE = false;
-uint8_t PAUSE = 1; uint8_t PAUSECOUNTER;
-bool ISPAUSE = false;
-bool ISCUT = false;
+uint8_t VCUT = 1; uint8_t VCUTCOUNTER;
+bool ISVCUTCOLOR = false;
+bool ISVCUTOFF = false;
+uint8_t HCUT = 1; uint8_t HCUTCOUNTER;
+bool ISHCUTOFF = false;
+bool ISHCUTCOLOR = false;
+
+
 HtmlColor COLOR = HtmlColor(0xffffff);
 bool ISENDOFF = false;
 bool ISENDCOLOR = false;
@@ -99,42 +92,52 @@ template<typename T_COLOR_OBJECT> class BrightnessShader : public NeoShaderBase
 {
   public:
     BrightnessShader():
-      NeoShaderBase(),
-      _brightness(255) // default to full bright
+      NeoShaderBase()
     {}
 
     T_COLOR_OBJECT Apply(uint16_t index, const T_COLOR_OBJECT src)
     {
+      //
       T_COLOR_OBJECT result;
-
-      // below is a fast way to apply brightness to all elements of the color
-      // it does assume each element is only 8bits, but this currently is the case
-      // This could be replaced with a LinearBlend for safty but is less optimized
-      const uint8_t* pSrc = reinterpret_cast<const uint8_t*>(&src);
-      uint8_t* pDest = reinterpret_cast<uint8_t*>(&result);
-      const uint8_t* pSrcEnd = pSrc + sizeof(T_COLOR_OBJECT);
-      while (pSrc != pSrcEnd)
+      T_COLOR_OBJECT color;
+      
+      // Horizontal cut counter initialization
+      if (index == 0) HCUTCOUNTER = 2 * HCUT;
+      
+      // Horizontal cut to do
+      if ((ISHCUTOFF || ISHCUTCOLOR) && (HCUTCOUNTER <= HCUT))
       {
-        *pDest++ = (*pSrc++ * (uint16_t(_brightness) + 1)) >> 8;
+        // Horizontal cut counter incrementation
+        if (HCUTCOUNTER > 1) HCUTCOUNTER -= 1;
+        else HCUTCOUNTER = 2 * HCUT;
+        
+        //  Blank or color the strip during the horizontal cut
+        color= RgbColor(0,0,0);
+        if (ISHCUTCOLOR)  color = RgbColor(COLOR);
       }
+      
+      // No horizontal cut to do
+      else
+      {
+        // Horizontal cut counter incrementation
+        if (ISHCUTOFF || ISHCUTCOLOR) HCUTCOUNTER -= 1;
+        
+        // Fil the strip with the bitmap
+        color = src;
+      }
+      
+      // below is a fast way to apply brightness to all elements (only 8bits) of the color
+      const uint8_t* pColor = reinterpret_cast<const uint8_t*>(&color);
+      uint8_t* pResult = reinterpret_cast<uint8_t*>(&result);
+      const uint8_t* pColorEnd = pColor + sizeof(T_COLOR_OBJECT);
+      while (pColor != pColorEnd)
+      {
+        *pResult++ = (*pColor++ * (uint16_t(BRIGHTNESS) + 1)) >> 8;
+      }
+      
+      //
       return result;
     }
-
-    // provide an accessor to set brightness
-    void setBrightness(uint8_t brightness)
-    {
-      _brightness = brightness;
-      Dirty(); // must call dirty when a property changes
-    }
-
-    // provide an accessor to get brightness
-    uint8_t getBrightness()
-    {
-      return _brightness;
-    }
-
-  private:
-    uint8_t _brightness;
 };
 
 typedef BrightnessShader<FEATURE::ColorObject> BrightShader;
@@ -167,11 +170,6 @@ void setup()
   WiFi.mode(WIFI_AP);
   WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
   WiFi.softAP(ssid);
-#endif
-
-  // DNS setup
-#ifdef DNS
-  dnsServer.start(DNS_PORT, "*", apIP);
 #endif
 
   // Webserver setup
@@ -230,8 +228,7 @@ void setup()
   // LED setup
   STRIP.Begin();
   STRIP.ClearTo(RgbColor(0, 0, 0));
-  SHADER.setBrightness(BRIGHTNESS);
-
+  
   // Button setup
 #ifdef BUTTON
   pinMode(BTNA_PIN, INPUT_PULLUP);
@@ -242,11 +239,6 @@ void setup()
 //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 void loop()
 {
-  // To handle the DNS
-#ifdef DNS
-  dnsServer.processNextRequest();
-#endif
-
   // To handle the webserver
   server.handleClient();
 
@@ -304,6 +296,15 @@ void loop()
     ISBTNBHOLD = false;
   }
 #endif
+}
+//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+void clearToSHADER()
+{
+  for (uint16_t index=0; index<NUMPIXELS; index++)
+   {
+     // Apply color through SHADER to each pixel of the strip
+     STRIP.SetPixelColor(index,SHADER.Apply(index, COLOR));
+   }
 }
 
 //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
@@ -435,7 +436,7 @@ void handleBitmapWrite()
 String parameterRead()
 {
   // New json document
-  StaticJsonDocument<500> jsonDoc;
+  StaticJsonDocument<600> jsonDoc;
 
   // Store parameter in json document
   jsonDoc["delay"] = DELAY;
@@ -449,9 +450,13 @@ String parameterRead()
   jsonDoc["isrepeat"] = ISREPEAT;
   jsonDoc["isbounce"] = ISBOUNCE;
   //
-  jsonDoc["pause"] = PAUSE;
-  jsonDoc["ispause"] = ISPAUSE;
-  jsonDoc["iscut"] = ISCUT;
+  jsonDoc["vcut"] = VCUT;
+  jsonDoc["isvcutoff"] = ISVCUTOFF;
+  jsonDoc["isvcutcolor"] = ISVCUTCOLOR;
+  //
+  jsonDoc["hcut"] = HCUT;
+  jsonDoc["ishcutoff"] = ISHCUTOFF;
+  jsonDoc["ishcutcolor"] = ISHCUTCOLOR;
   //
   char color[9];
   COLOR.ToNumericalString(color, 9);
@@ -498,7 +503,7 @@ void handleParameterSave()
 void parameterWrite(String stringParameter)
 {
   // New json document
-  StaticJsonDocument<500> jsonDoc;
+  StaticJsonDocument<600> jsonDoc;
 
   // Convert json String to json object
   DeserializationError error = deserializeJson(jsonDoc, stringParameter);
@@ -519,27 +524,27 @@ void parameterWrite(String stringParameter)
 
   // Write parameter in the ESP8266
   if (!jsonDoc["delay"].isNull()) DELAY = jsonDoc["delay"];
-  if (!jsonDoc["brightness"].isNull())
-  {
-    BRIGHTNESS = jsonDoc["brightness"];
-    SHADER.setBrightness(BRIGHTNESS);
-  }
+  if (!jsonDoc["brightness"].isNull()) BRIGHTNESS = jsonDoc["brightness"];
   //
   if (!jsonDoc["countdown"].isNull()) COUNTDOWN = jsonDoc["countdown"];
-  if (!jsonDoc["iscountdown"].isNull())ISCOUNTDOWN = jsonDoc["iscountdown"];
+  if (!jsonDoc["iscountdown"].isNull()) ISCOUNTDOWN = jsonDoc["iscountdown"];
   //
   if (!jsonDoc["repeat"].isNull()) REPEAT = jsonDoc["repeat"];
-  if (!jsonDoc["isinvert"].isNull())ISINVERT = jsonDoc["isinvert"];
-  if (!jsonDoc["isrepeat"].isNull())ISREPEAT = jsonDoc["isrepeat"];
-  if (!jsonDoc["isbounce"].isNull())ISBOUNCE = jsonDoc["isbounce"];
+  if (!jsonDoc["isinvert"].isNull()) ISINVERT = jsonDoc["isinvert"];
+  if (!jsonDoc["isrepeat"].isNull()) ISREPEAT = jsonDoc["isrepeat"];
+  if (!jsonDoc["isbounce"].isNull()) ISBOUNCE = jsonDoc["isbounce"];
   //
-  if (!jsonDoc["pause"].isNull()) PAUSE = jsonDoc["pause"];
-  if (!jsonDoc["ispause"].isNull())ISPAUSE = jsonDoc["ispause"];
-  if (!jsonDoc["iscut"].isNull())ISCUT = jsonDoc["iscut"];
+  if (!jsonDoc["vcut"].isNull()) VCUT = jsonDoc["vcut"];
+  if (!jsonDoc["isvcutoff"].isNull()) ISVCUTOFF = jsonDoc["isvcutoff"];
+  if (!jsonDoc["isvcutcolor"].isNull()) ISVCUTCOLOR = jsonDoc["isvcutcolor"];
   //
-  if (!jsonDoc["color"].isNull())COLOR.Parse<HtmlShortColorNames>(jsonDoc["color"].as<String>());
-  if (!jsonDoc["isendoff"].isNull())ISENDOFF = jsonDoc["isendoff"];
-  if (!jsonDoc["isendcolor"].isNull())ISENDCOLOR = jsonDoc["isendcolor"];
+  if (!jsonDoc["hcut"].isNull()) HCUT = jsonDoc["hcut"];
+  if (!jsonDoc["ishcutoff"].isNull()) ISHCUTOFF = jsonDoc["ishcutoff"];
+  if (!jsonDoc["ishcutcolor"].isNull()) ISHCUTCOLOR = jsonDoc["ishcutcolor"];
+  //
+  if (!jsonDoc["color"].isNull()) COLOR.Parse<HtmlShortColorNames>(jsonDoc["color"].as<String>());
+  if (!jsonDoc["isendoff"].isNull()) ISENDOFF = jsonDoc["isendoff"];
+  if (!jsonDoc["isendcolor"].isNull()) ISENDCOLOR = jsonDoc["isendcolor"];
 
   // Parameter are write
   server.send(200, "text/html",  "PARAMETER WRITE SUCCESS");
@@ -584,7 +589,7 @@ void handleFileDelete()
   // check if the file exists
   if (!LittleFS.exists(path)) return server.send(404, "text/plain", "DELETE ERROR : FILE NOT FOUND");
 
-  // if delete current bitmap reload defaut bitmap
+  // if delete current bitmap onload it
   if ( path == BMPPATH)
   {
     String BMPPATH = "";
@@ -605,15 +610,8 @@ void handleFileRead(String path)
   if (path.endsWith("/")) path += "index.html";
 
   // Check if the file exists
-#ifdef DNS
-  if (!LittleFS.exists(path))
-  {
-    const char *metaRefreshStr = "<head><meta http-equiv=\"refresh\" content=\"0; url=http://192.168.1.1/index.html\" /></head><body><p>redirecting...</p></body>";
-    return server.send(200, "text/html", metaRefreshStr);
-  }
-#else
   if (!LittleFS.exists(path)) return server.send(404, "text/plain", "READ ERROR : FILE NOT FOUND");
-#endif
+
   // Open the file
   fs::File file = LittleFS.open(path, "r");
 
@@ -710,7 +708,7 @@ String play()
   // Html msg
   String htmlMsg = "";
 
-  // Animation is paused?
+  // Animation is paused : resume it
   if (ANIMATIONS.IsPaused())
   {
     // Resume animation
@@ -719,7 +717,8 @@ String play()
     // Animation is resume
     htmlMsg = "RESUME";
   }
-  // Animation is active?
+  
+  // Animation is active : pause it
   else if (ANIMATIONS.IsAnimationActive(0))
   {
     // Pause animation
@@ -727,26 +726,27 @@ String play()
 
     // Blank the strip if needed
     if (ISENDOFF) STRIP.ClearTo(RgbColor(0, 0, 0));
-    if (ISENDCOLOR) STRIP.ClearTo(SHADER.Apply(0, COLOR));
+    if (ISENDCOLOR) clearToSHADER();  //STRIP.ClearTo(SHADER.Apply(0, COLOR));
 
     // Animation is paused
     htmlMsg = "PAUSE";
   }
-  // No animation !!! let s start a new one
+  
+  // No animation : start a new one
   else
   {
-    // Index
-    if (ISINVERT) INDEX = INDEXSTOP;
-    else INDEX = INDEXSTART;
+    // Invert initialization
+    ISINVERTTEMP = ISINVERT;
 
-    // Countdown
-    COUNTDOWNCOUNTER = millis();
-
-    // Repeat
+    // Repeat counter initialization
     REPEATCOUNTER = REPEAT;
 
-    // Pause
-    PAUSECOUNTER = 2 * PAUSE;
+    // Cut counter initialization
+    VCUTCOUNTER = 2 * VCUT;
+
+    // Index initialization
+    if (ISINVERTTEMP) INDEX = INDEXSTOP;
+    else INDEX = INDEXSTART;
 
     // Launch a new animation
     ANIMATIONS.StartAnimation(0, DELAY, updateAnimation);
@@ -754,6 +754,8 @@ String play()
     // New animation is launch
     htmlMsg = "PLAY";
   }
+  
+  //
   return htmlMsg;
 }
 
@@ -790,7 +792,7 @@ void light()
   ANIMATIONS.Resume(); // remove the pause flag to stop paused animation
 
   //turn on the strip
-  STRIP.ClearTo(SHADER.Apply(0, COLOR));
+  clearToSHADER();
 }
 
 //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
@@ -819,65 +821,75 @@ void updateAnimation(const AnimationParam & param)
   {
     // INDEX is in the limit
     if ((INDEXSTART <= INDEX) && (INDEX <= INDEXSTOP))
-    {
+    { 
       // Restart the animation
       ANIMATIONS.RestartAnimation(param.index);
 
-      // Countdown to do?
-      if (ISCOUNTDOWN && (millis() - COUNTDOWNCOUNTER <= COUNTDOWN))
-      {
-        // Wait
-      }
-      // Pause to do?
-      else if ((ISPAUSE || ISCUT) && (PAUSECOUNTER <= PAUSE))
-      {
-        //Initialisation
-        if (PAUSECOUNTER > 1) PAUSECOUNTER -= 1;
-        else PAUSECOUNTER = 2 * PAUSE;
+      // Countdown counter initialization
+      COUNTDOWNCOUNTER = millis();
 
-        // Blank or color the strip if needed
-        if (ISENDOFF) STRIP.ClearTo(RgbColor(0, 0, 0));
-        if (ISENDCOLOR) STRIP.ClearTo(SHADER.Apply(0, COLOR));
+      // Vertical cut to do
+      if ((ISVCUTCOLOR || ISVCUTOFF) && (VCUTCOUNTER <= VCUT))
+      {
+        // Vertical cut counter incrementation
+        if (VCUTCOUNTER > 1) VCUTCOUNTER -= 1;
+        else VCUTCOUNTER = 2 * VCUT;
 
-        // Cut the bitmap is needed
-        if (ISCUT)
-        {
-          // Index
-          if (ISINVERT) INDEX -= 1;
-          else INDEX += 1;
-        }
+        // Blank or color the strip during the vertical cut
+        if (ISVCUTOFF) STRIP.ClearTo(RgbColor(0, 0, 0));
+        if (ISVCUTCOLOR) clearToSHADER();
+
+        // Index incrementation
+        if (ISINVERTTEMP) INDEX -= 1;
+        else INDEX += 1;
       }
-      // No countdown/pause to do !!! so let's play
+      
+      // No vertical cut to do
       else
       {
-        // Fil the strip : bitmap is crop to fit the strip !!!
+        // Vertical cut counter incrementation
+        if (ISVCUTCOLOR || ISVCUTOFF) VCUTCOUNTER -= 1;
+        
+        // Fil the strip with the bitmap (too large bitmap are crop)
         NEOBMPFILE.Render<BrightShader>(STRIP, SHADER, 0, 0, INDEX, NEOBMPFILE.Width());
 
-        // Index
-        if (ISINVERT) INDEX -= 1;
+        // Index incrementation
+        if (ISINVERTTEMP) INDEX -= 1;
         else INDEX += 1;
-
-        //
-        if (ISPAUSE || ISCUT) PAUSECOUNTER -= 1;
       }
     }
+    
     // INDEX is out of the limit
     else
     {
-      // Repeat to do?
+      // Repeat or bounce to do
       if ((ISREPEAT || ISBOUNCE) && (REPEATCOUNTER > 0))
       {
         // Restart the animation
         ANIMATIONS.RestartAnimation(param.index);
 
-        // Initialisation
-        REPEATCOUNTER -= 1;
-        if (ISBOUNCE) ISINVERT = !ISINVERT; //invert the invert (following ??)
-
-        // Index
-        if (ISINVERT) INDEX = INDEXSTOP;
-        else INDEX = INDEXSTART;
+        // Countdown to do
+        if (ISCOUNTDOWN && (millis() - COUNTDOWNCOUNTER <= COUNTDOWN))
+        {
+          // Blank or color the strip during the countdown
+          if (ISENDOFF) STRIP.ClearTo(RgbColor(0, 0, 0));
+          if (ISENDCOLOR) clearToSHADER();
+        }
+        // No countdown to do? so let's repeat
+        else
+        {
+          // Repeat counter incrementation
+          REPEATCOUNTER -= 1;
+          
+          //invert invertTemp to bounce
+          if (ISBOUNCE) ISINVERTTEMP = !ISINVERTTEMP;
+  
+          // Index initialization
+          if (ISINVERTTEMP) INDEX = INDEXSTOP;
+          else INDEX = INDEXSTART;
+        }
       }
+      
       // Nothing more to do
       else
       {
@@ -886,12 +898,7 @@ void updateAnimation(const AnimationParam & param)
 
         // Blank or color the strip if needed
         if (ISENDOFF) STRIP.ClearTo(RgbColor(0, 0, 0));
-        if (ISENDCOLOR) STRIP.ClearTo(SHADER.Apply(0, COLOR));
-
-#ifdef DEBUGER
-        Serial.print("complete time :");
-        Serial.println(millis() - COUNTDOWNCOUNTER);
-#endif
+        if (ISENDCOLOR) clearToSHADER();
       }
     }
   }
