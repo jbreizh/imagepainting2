@@ -56,8 +56,8 @@ var CanvasToBMP = {
 		return file;
 
 		// helper method to move current buffer position
-		function setU16(data) {view.setUint16(pos, data, true); pos += 2}
-		function setU32(data) {view.setUint32(pos, data, true); pos += 4}
+		function setU16(data) {view.setUint16(pos, data, true); pos += 2;}
+		function setU32(data) {view.setUint32(pos, data, true); pos += 4;}
 	},
 
 	//Converts a canvas to BMP file, returns a Blob representing the file. This can be used with URL.createObjectURL().

@@ -37,10 +37,10 @@ document.getElementById("collapseSystem").addEventListener('click', toggle, fals
 // Variable
 var address = "";
 //var address = "http://192.168.27.55";
-var FILELIST = new Object();
-var BITMAP = new Object();
-var PARAMETER = new Object();
-var SYSTEM = new Object();
+var FILELIST = {};
+var BITMAP = {};
+var PARAMETER = {};
+var SYSTEM = {};
 
 //--------------------------------------------------
 function updateStatus(message, color)
@@ -111,7 +111,7 @@ function download(url,name)
 function upload(blob,name)
 {
 	// too big? display an error
-	if (blob.size > SYSTEM["freeBytes"])
+	if (blob.size > SYSTEM.freeBytes)
 	{
 		updateStatus("UPLOAD ERROR : NOT ENOUGH SPACE", "red");
 	}
@@ -176,37 +176,37 @@ function setBitmap(jsonString)
 {
 	BITMAP = JSON.parse(jsonString);
 	// set actions values
-	if (document.getElementById("selectAction") != null) document.getElementById("selectAction").value = BITMAP["bmpPath"];
-	//if (document.getElementById("btnActionDownload") != null) document.getElementById("btnActionDownload").disabled = !BITMAP["isbmpload"];
-	//if (document.getElementById("btnActionDelete") != null) document.getElementById("btnActionDelete").disabled = !BITMAP["isbmpload"];
+	if (document.getElementById("selectAction") != null) document.getElementById("selectAction").value = BITMAP.bmpPath;
+	//if (document.getElementById("btnActionDownload") != null) document.getElementById("btnActionDownload").disabled = !BITMAP.isbmpload;
+	//if (document.getElementById("btnActionDelete") != null) document.getElementById("btnActionDelete").disabled = !BITMAP.isbmpload;
 	if (document.getElementById("sliderActionStart") != null)
 	{
-		document.getElementById("sliderActionStart").setAttribute("min", BITMAP["indexMin"]);
-		document.getElementById("sliderActionStart").setAttribute("max", BITMAP["indexMax"]);
-		document.getElementById("sliderActionStart").value = BITMAP["indexStart"];
-		document.getElementById("sliderActionStart").disabled = !BITMAP["isbmpload"];
+		document.getElementById("sliderActionStart").setAttribute("min", BITMAP.indexMin);
+		document.getElementById("sliderActionStart").setAttribute("max", BITMAP.indexMax);
+		document.getElementById("sliderActionStart").value = BITMAP.indexStart;
+		document.getElementById("sliderActionStart").disabled = !BITMAP.isbmpload;
 	}
-	if (document.getElementById("textActionStart") != null) document.getElementById("textActionStart").innerHTML = BITMAP["indexStart"] + "px";
+	if (document.getElementById("textActionStart") != null) document.getElementById("textActionStart").innerHTML = BITMAP.indexStart + "px";
 	if (document.getElementById("sliderActionStop") != null)
 	{
-		document.getElementById("sliderActionStop").setAttribute("min", BITMAP["indexMin"]);
-		document.getElementById("sliderActionStop").setAttribute("max", BITMAP["indexMax"]);
-		document.getElementById("sliderActionStop").value = BITMAP["indexStop"];
-		document.getElementById("sliderActionStop").disabled = !BITMAP["isbmpload"];
+		document.getElementById("sliderActionStop").setAttribute("min", BITMAP.indexMin);
+		document.getElementById("sliderActionStop").setAttribute("max", BITMAP.indexMax);
+		document.getElementById("sliderActionStop").value = BITMAP.indexStop;
+		document.getElementById("sliderActionStop").disabled = !BITMAP.isbmpload;
 	}
-	if (document.getElementById("textActionStop") != null) document.getElementById("textActionStop").innerHTML = BITMAP["indexStop"] + "px";
+	if (document.getElementById("textActionStop") != null) document.getElementById("textActionStop").innerHTML = BITMAP.indexStop + "px";
 	if (document.getElementById("sliderActionLength") != null)
 	{
-		document.getElementById("sliderActionLength").setAttribute("max",(BITMAP["indexStop"]-BITMAP["indexStart"])*255);
-		document.getElementById("sliderActionLength").value = (BITMAP["indexStop"]-BITMAP["indexStart"])*PARAMETER["delay"];
+		document.getElementById("sliderActionLength").setAttribute("max",(BITMAP.indexStop-BITMAP.indexStart)*255);
+		document.getElementById("sliderActionLength").value = (BITMAP.indexStop-BITMAP.indexStart)*PARAMETER.delay;
 	}
-	if (document.getElementById("sliderActionLength") != null) document.getElementById("sliderActionLength").disabled = !BITMAP["isbmpload"];
-	if (document.getElementById("textActionLength") != null) document.getElementById("textActionLength").innerHTML = (BITMAP["indexStop"]-BITMAP["indexStart"])*PARAMETER["delay"] + "ms"
-	if (document.getElementById("btnActionBurn") != null) document.getElementById("btnActionBurn").disabled = !BITMAP["isbmpload"];
-	if (document.getElementById("btnActionPlay") != null) document.getElementById("btnActionPlay").disabled = !BITMAP["isbmpload"];
-	if(BITMAP["isbmpload"])
+	if (document.getElementById("sliderActionLength") != null) document.getElementById("sliderActionLength").disabled = !BITMAP.isbmpload;
+	if (document.getElementById("textActionLength") != null) document.getElementById("textActionLength").innerHTML = (BITMAP.indexStop-BITMAP.indexStart)*PARAMETER.delay + "ms";
+	if (document.getElementById("btnActionBurn") != null) document.getElementById("btnActionBurn").disabled = !BITMAP.isbmpload;
+	if (document.getElementById("btnActionPlay") != null) document.getElementById("btnActionPlay").disabled = !BITMAP.isbmpload;
+	if(BITMAP.isbmpload)
 	{
-		imgAction.src= address + "/" + BITMAP["bmpPath"];
+		imgAction.src= address + "/" + BITMAP.bmpPath;
 	}
 		// it isn't a bitmap
 	else
@@ -280,37 +280,37 @@ function setParameter(jsonString)
 {
 	PARAMETER = JSON.parse(jsonString);
 	// set settings values
-	if (document.getElementById("sliderActionLength") != null) document.getElementById("sliderActionLength").value = (BITMAP["indexStop"]-BITMAP["indexStart"])*PARAMETER["delay"];
-	if (document.getElementById("textActionLength") != null) document.getElementById("textActionLength").innerHTML = (BITMAP["indexStop"]-BITMAP["indexStart"])*PARAMETER["delay"] + "ms";
-	if (document.getElementById("sliderDelay") != null) document.getElementById("sliderDelay").value = PARAMETER["delay"];
-	if (document.getElementById("textDelay") != null) document.getElementById("textDelay").innerHTML = PARAMETER["delay"] + "ms";
-	if (document.getElementById("sliderBrightness") != null) document.getElementById("sliderBrightness").value = PARAMETER["brightness"];
-	if (document.getElementById("textBrightness") != null) document.getElementById("textBrightness").innerHTML = PARAMETER["brightness"] + "%";
-	if (document.getElementById("sliderCountdown") != null) document.getElementById("sliderCountdown").value = PARAMETER["countdown"];
-	if (document.getElementById("textCountdown") != null) document.getElementById("textCountdown").innerHTML = PARAMETER["countdown"] + "ms";
-	if (document.getElementById("ckCountdown") != null) document.getElementById("ckCountdown").checked  = PARAMETER["iscountdown"];
-	if (document.getElementById("sliderRepeat") != null) document.getElementById("sliderRepeat").value = PARAMETER["repeat"];
-	if (document.getElementById("textRepeat") != null) document.getElementById("textRepeat").innerHTML = PARAMETER["repeat"] + "x";
-	if (document.getElementById("ckInvert") != null) document.getElementById("ckInvert").checked  = PARAMETER["isinvert"];
-	if (document.getElementById("ckRepeat") != null) document.getElementById("ckRepeat").checked  = PARAMETER["isrepeat"];
-	if (document.getElementById("ckBounce") != null) document.getElementById("ckBounce").checked  = PARAMETER["isbounce"];
+	if (document.getElementById("sliderActionLength") != null) document.getElementById("sliderActionLength").value = (BITMAP.indexStop-BITMAP.indexStart)*PARAMETER.delay;
+	if (document.getElementById("textActionLength") != null) document.getElementById("textActionLength").innerHTML = (BITMAP.indexStop-BITMAP.indexStart)*PARAMETER.delay + "ms";
+	if (document.getElementById("sliderDelay") != null) document.getElementById("sliderDelay").value = PARAMETER.delay;
+	if (document.getElementById("textDelay") != null) document.getElementById("textDelay").innerHTML = PARAMETER.delay + "ms";
+	if (document.getElementById("sliderBrightness") != null) document.getElementById("sliderBrightness").value = PARAMETER.brightness;
+	if (document.getElementById("textBrightness") != null) document.getElementById("textBrightness").innerHTML = PARAMETER.brightness + "%";
+	if (document.getElementById("sliderCountdown") != null) document.getElementById("sliderCountdown").value = PARAMETER.countdown;
+	if (document.getElementById("textCountdown") != null) document.getElementById("textCountdown").innerHTML = PARAMETER.countdown + "ms";
+	if (document.getElementById("ckCountdown") != null) document.getElementById("ckCountdown").checked  = PARAMETER.iscountdown;
+	if (document.getElementById("sliderRepeat") != null) document.getElementById("sliderRepeat").value = PARAMETER.repeat;
+	if (document.getElementById("textRepeat") != null) document.getElementById("textRepeat").innerHTML = PARAMETER.repeat + "x";
+	if (document.getElementById("ckInvert") != null) document.getElementById("ckInvert").checked  = PARAMETER.isinvert;
+	if (document.getElementById("ckRepeat") != null) document.getElementById("ckRepeat").checked  = PARAMETER.isrepeat;
+	if (document.getElementById("ckBounce") != null) document.getElementById("ckBounce").checked  = PARAMETER.isbounce;
 	if (document.getElementById("ckRepeat") != null && document.getElementById("ckBounce") != null) updateCheckbox(document.getElementById("ckRepeat"),document.getElementById("ckBounce"));
 	if (document.getElementById("ckBounce") != null && document.getElementById("ckRepeat") != null) updateCheckbox(document.getElementById("ckBounce"),document.getElementById("ckRepeat"));
-	if (document.getElementById("sliderVcut") != null) document.getElementById("sliderVcut").value = PARAMETER["vcut"];
-	if (document.getElementById("textVcut") != null) document.getElementById("textVcut").innerHTML = PARAMETER["vcut"] + "px";
-	if (document.getElementById("ckVcutOff") != null) document.getElementById("ckVcutOff").checked  = PARAMETER["isvcutoff"];
-	if (document.getElementById("ckVcutColor") != null) document.getElementById("ckVcutColor").checked  = PARAMETER["isvcutcolor"];
+	if (document.getElementById("sliderVcut") != null) document.getElementById("sliderVcut").value = PARAMETER.vcut;
+	if (document.getElementById("textVcut") != null) document.getElementById("textVcut").innerHTML = PARAMETER.vcut + "px";
+	if (document.getElementById("ckVcutOff") != null) document.getElementById("ckVcutOff").checked  = PARAMETER.isvcutoff;
+	if (document.getElementById("ckVcutColor") != null) document.getElementById("ckVcutColor").checked  = PARAMETER.isvcutcolor;
 	if (document.getElementById("ckVcutOff") != null && document.getElementById("ckVcutColor") != null) updateCheckbox(document.getElementById("ckVcutOff"),document.getElementById("ckVcutColor"));
 	if (document.getElementById("ckVcutColor") != null && document.getElementById("ckVcutOff") != null) updateCheckbox(document.getElementById("ckVcutColor"),document.getElementById("ckVcutOff"));
-	if (document.getElementById("sliderHcut") != null) document.getElementById("sliderHcut").value = PARAMETER["hcut"];
-	if (document.getElementById("textHcut") != null) document.getElementById("textHcut").innerHTML = PARAMETER["hcut"] + "px";
-	if (document.getElementById("ckHcutOff") != null) document.getElementById("ckHcutOff").checked  = PARAMETER["ishcutoff"];
-	if (document.getElementById("ckHcutColor") != null) document.getElementById("ckHcutColor").checked  = PARAMETER["ishcutcolor"];
+	if (document.getElementById("sliderHcut") != null) document.getElementById("sliderHcut").value = PARAMETER.hcut;
+	if (document.getElementById("textHcut") != null) document.getElementById("textHcut").innerHTML = PARAMETER.hcut + "px";
+	if (document.getElementById("ckHcutOff") != null) document.getElementById("ckHcutOff").checked  = PARAMETER.ishcutoff;
+	if (document.getElementById("ckHcutColor") != null) document.getElementById("ckHcutColor").checked  = PARAMETER.ishcutcolor;
 	if (document.getElementById("ckHcutOff") != null && document.getElementById("ckHcutColor") != null) updateCheckbox(document.getElementById("ckHcutOff"),document.getElementById("ckHcutColor"));
 	if (document.getElementById("ckHcutColor") != null && document.getElementById("ckHcutOff") != null) updateCheckbox(document.getElementById("ckHcutColor"),document.getElementById("ckHcutOff"));
-	if (document.getElementById("pickerColor") != null) document.getElementById("pickerColor").value = PARAMETER["color"];
-	if (document.getElementById("ckEndOff") != null) document.getElementById("ckEndOff").checked  = PARAMETER["isendoff"];
-	if (document.getElementById("ckEndColor") != null) document.getElementById("ckEndColor").checked  = PARAMETER["isendcolor"];
+	if (document.getElementById("pickerColor") != null) document.getElementById("pickerColor").value = PARAMETER.color;
+	if (document.getElementById("ckEndOff") != null) document.getElementById("ckEndOff").checked  = PARAMETER.isendoff;
+	if (document.getElementById("ckEndColor") != null) document.getElementById("ckEndColor").checked  = PARAMETER.isendcolor;
 	if (document.getElementById("ckEndOff") != null && document.getElementById("ckEndColor") != null) updateCheckbox(document.getElementById("ckEndOff"),document.getElementById("ckEndColor"));
 	if (document.getElementById("ckEndColor") != null && document.getElementById("ckEndOff") != null) updateCheckbox(document.getElementById("ckEndColor"),document.getElementById("ckEndOff"));
 }
@@ -447,26 +447,26 @@ function setSystem(jsonString)
 	// set convert values
 	if (document.getElementById("sliderConvertPixels") !=  null)
 	{
-		document.getElementById("sliderConvertPixels").setAttribute("max",SYSTEM["numPixels"]);
-		document.getElementById("sliderConvertPixels").value = SYSTEM["numPixels"];
+		document.getElementById("sliderConvertPixels").setAttribute("max",SYSTEM.numPixels);
+		document.getElementById("sliderConvertPixels").value = SYSTEM.numPixels;
 	}
-	if (document.getElementById("textConvertPixels") != null) document.getElementById("textConvertPixels").innerHTML = SYSTEM["numPixels"] + "px";
+	if (document.getElementById("textConvertPixels") != null) document.getElementById("textConvertPixels").innerHTML = SYSTEM.numPixels + "px";
 	// set generate values
 	if (document.getElementById("sliderGeneratePixels") !=  null)
 	{
-		document.getElementById("sliderGeneratePixels").setAttribute("max",SYSTEM["numPixels"]);
-		document.getElementById("sliderGeneratePixels").value = SYSTEM["numPixels"];
+		document.getElementById("sliderGeneratePixels").setAttribute("max",SYSTEM.numPixels);
+		document.getElementById("sliderGeneratePixels").value = SYSTEM.numPixels;
 	}
-	if (document.getElementById("textGeneratePixels") != null) document.getElementById("textGeneratePixels").innerHTML = SYSTEM["numPixels"] + "px";
+	if (document.getElementById("textGeneratePixels") != null) document.getElementById("textGeneratePixels").innerHTML = SYSTEM.numPixels + "px";
 	// set system values
-	if (document.getElementById("textSystemPixels") != null) document.getElementById("textSystemPixels").innerHTML = SYSTEM["numPixels"] + "px";
+	if (document.getElementById("textSystemPixels") != null) document.getElementById("textSystemPixels").innerHTML = SYSTEM.numPixels + "px";
 	// set chart parameters
 	if (document.getElementById("canvasSystem") != null)
 	{
 		var myChart = new PieChart(
 		{
 			canvas:document.getElementById("canvasSystem"),
-			data:{"Used": SYSTEM["usedBytes"],"Free": SYSTEM["freeBytes"]},
+			data:{"Used": SYSTEM.usedBytes,"Free": SYSTEM.freeBytes},
 			colors:["red","green"],
 		}
 		);
@@ -579,7 +579,7 @@ function requestFileDelete(fileName)
 
 
 // Actions Variable--------------------------------------------------
-var imgAction = new Image;
+var imgAction = new Image();
 var selectAction = document.getElementById("selectAction");
 var canvasAction =document.getElementById("canvasAction");
 var btnActionDelete = document.getElementById("btnActionDelete");
@@ -716,7 +716,7 @@ btnSave.addEventListener('click', requestParameterSave, false);
 btnRestore.addEventListener('click', requestParameterRestore, false);
 
 // Convert Variable--------------------------------------------------
-var imgConvert = new Image;
+var imgConvert = new Image();
 var canvasConvert = document.getElementById("canvasConvert");
 var selectConvert = document.getElementById("selectConvert");
 var selectConvertGamma = document.getElementById("selectConvertGamma");

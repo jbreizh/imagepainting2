@@ -16,7 +16,7 @@ function generateCircle(canvas)
     ctx.fillStyle = "black";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     //
-    for(i=0; i<300; i++) {
+    for(var i=0; i<300; i++) {
         
         var x = Math.floor(Math.random()*canvas.width);
         var y = Math.floor(Math.random()*canvas.height);
@@ -47,10 +47,10 @@ function generateRainbow(canvas)
     ctx.fillStyle = "black";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     var color = ['red', 'orange', 'yellow', 'green', 'blue', 'indigo', 'violet'];
-    shuffleArray(color)
+    shuffleArray(color);
     //     
     var gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
-    for(i=0; i<color.length; i++) {
+    for(var i=0; i<color.length; i++) {
         gradient.addColorStop(i/(color.length-1), color[i]); 
     }
     ctx.fillStyle = gradient;

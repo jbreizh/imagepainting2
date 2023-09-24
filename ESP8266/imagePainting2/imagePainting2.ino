@@ -726,7 +726,7 @@ String play()
 
     // Blank the strip if needed
     if (ISENDOFF) STRIP.ClearTo(RgbColor(0, 0, 0));
-    if (ISENDCOLOR) clearToSHADER();  //STRIP.ClearTo(SHADER.Apply(0, COLOR));
+    if (ISENDCOLOR) clearToSHADER();
 
     // Animation is paused
     htmlMsg = "PAUSE";
