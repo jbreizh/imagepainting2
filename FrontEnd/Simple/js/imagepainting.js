@@ -316,6 +316,31 @@ function setParameter(jsonString)
 }
 
 //--------------------------------------------------
+function requestParameterSave()
+{
+	var xhr = new XMLHttpRequest();
+	xhr.onload = function()
+	{
+		if (this.status == 200)
+		{
+			updateStatus(this.responseText, "green");
+		}
+		else
+		{
+			updateStatus(this.responseText, "red");
+		}
+	};
+
+	xhr.onerror = function()
+	{
+		updateStatus("PARAMETER SAVE ERROR : CONNECTION LOST", "red");
+	};
+
+	xhr.open("GET", address+"/parameterSave", true);
+	xhr.send(null);
+}
+	
+	//--------------------------------------------------
 function requestParameterWrite()
 {
 	var xhr = new XMLHttpRequest();
@@ -368,31 +393,6 @@ function getParameter()
 }
 
 //--------------------------------------------------
-function requestParameterSave()
-{
-	var xhr = new XMLHttpRequest();
-	xhr.onload = function()
-	{
-		if (this.status == 200)
-		{
-			updateStatus(this.responseText, "green");
-		}
-		else
-		{
-			updateStatus(this.responseText, "red");
-		}
-	};
-
-	xhr.onerror = function()
-	{
-		updateStatus("PARAMETER SAVE ERROR : CONNECTION LOST", "red");
-	};
-
-	xhr.open("GET", address+"/parameterSave", true);
-	xhr.send(null);
-}
-
-//--------------------------------------------------
 function requestParameterRestore()
 {
 	var xhr = new XMLHttpRequest();
@@ -419,6 +419,32 @@ function requestParameterRestore()
 }
 
 //--------------------------------------------------
+	function requestParameterDefault()
+	{
+		var xhr = new XMLHttpRequest();
+		xhr.onload = function()
+		{
+			if (this.status == 200)
+			{
+				updateStatus(this.responseText, "green");
+			}
+			else
+			{
+				updateStatus(this.responseText, "red");
+			}
+			requestParameterRead();
+		};
+
+		xhr.onerror = function()
+		{
+			updateStatus("PARAMETER DEFAULT ERROR : CONNECTION LOST", "red");
+		};
+
+		xhr.open("GET", address+"/parameterDefault", true);
+		xhr.send(null);
+	}
+
+	//--------------------------------------------------
 function requestSystemRead()
 {
 	var xhr = new XMLHttpRequest();
@@ -679,6 +705,7 @@ var ckEndOff = document.getElementById("ckEndOff");
 var ckEndColor = document.getElementById("ckEndColor");
 var btnSave = document.getElementById("btnSave");
 var btnRestore = document.getElementById("btnRestore");
+var btnDefault = document.getElementById("btnDefault");
 
 // Settings Event--------------------------------------------------
 sliderDelay.addEventListener('input', function() { textDelay.innerHTML = sliderDelay.value + "ms"; sliderActionLength.value = (sliderActionStop.value-sliderActionStart.value)*sliderDelay.value; textActionLength.innerHTML = sliderActionLength.value + "ms";}, false);
@@ -714,6 +741,7 @@ ckEndColor.addEventListener('click', requestParameterWrite, false);
 ckEndOff.addEventListener('click', requestParameterWrite, false);
 btnSave.addEventListener('click', requestParameterSave, false);
 btnRestore.addEventListener('click', requestParameterRestore, false);
+btnDefault.addEventListener('click', requestParameterDefault, false)
 
 // Convert Variable--------------------------------------------------
 var imgConvert = new Image();

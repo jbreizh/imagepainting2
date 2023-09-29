@@ -35,10 +35,11 @@ IPAddress apIP(192, 168, 1, 1); // wifi IP for AP mode
 
 // FS --------------
 fs::File UPLOADFILE; // hold uploaded file
-const char *CONFIGPATH = "config.json";  // config file
+const char *CONFIGPATH = "user.json";  // user config file
+const char *DEFAULTPATH = "default.json";  // default config file
 // end FS -----------
 
-// ANIMATION --------------
+// BITMAP --------------
 NeoPixelAnimator ANIMATIONS(1); // NeoPixel animation management object
 String BMPPATH = "";
 bool ISBMPLOAD = false;
@@ -48,9 +49,9 @@ uint16_t INDEXSTART; //Min index chosen
 uint16_t INDEX; // Current index
 uint16_t INDEXSTOP; //Max index chosen
 uint16_t INDEXMAX; //Max index possible
-// end ANIMATION --------------
+// end BITMAP --------------
 
-// RUNTIME --------------
+// PARAMETER --------------
 long COUNTDOWN = 0; long COUNTDOWNCOUNTER;
 bool ISCOUNTDOWN = false;
 uint8_t DELAY = 15;
@@ -65,12 +66,10 @@ bool ISVCUTOFF = false;
 uint8_t HCUT = 1; uint8_t HCUTCOUNTER;
 bool ISHCUTOFF = false;
 bool ISHCUTCOLOR = false;
-
-
 HtmlColor COLOR = HtmlColor(0xffffff);
 bool ISENDOFF = false;
 bool ISENDCOLOR = false;
-// end RUNTIME --------------
+// end PARAMETER --------------
 
 // BUTTON --------------
 #ifdef BUTTON
@@ -145,6 +144,14 @@ typedef BrightnessShader<FEATURE::ColorObject> BrightShader;
 BrightShader SHADER;
 //end SHADER --------------
 
+//STRUCTURE --------------
+struct t_httpAnswer {
+ int statusCode;
+ String contentType;
+ String contentData;
+};
+//end STRUCTURE --------------
+
 //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 void setup()
 {
@@ -214,6 +221,9 @@ void setup()
   // handle parameter Restore
   server.on("/parameterRestore", HTTP_GET, handleParameterRestore);
 
+   // handle parameter Restore
+  server.on("/parameterDefault", HTTP_GET, handleParameterDefault); 
+
   // handle system Read
   server.on("/systemRead", HTTP_GET, handleSystemRead);
 
@@ -228,6 +238,9 @@ void setup()
   // LED setup
   STRIP.Begin();
   STRIP.ClearTo(RgbColor(0, 0, 0));
+
+  // Parameter initialization
+  if(parameterRestore(CONFIGPATH).statusCode != 200) parameterRestore(DEFAULTPATH);
   
   // Button setup
 #ifdef BUTTON
@@ -259,7 +272,7 @@ void loop()
     if ((millis() - BTNATIMER > HOLDTIME) && (!ISBTNAHOLD))
     {
       ISBTNAHOLD = true;
-      burn();
+      stopAnimation("BURN");
     }
   }
   else if (ISBTNA)
@@ -283,14 +296,14 @@ void loop()
     if ((millis() - BTNBTIMER > HOLDTIME) && (!ISBTNBHOLD))
     {
       ISBTNBHOLD = true;
-      light();
+      stopAnimation("LIGHT");
     }
   }
   else if (ISBTNB)
   {
     if ((millis() - BTNBTIMER > DEBOUNCETIME) && (!ISBTNBHOLD))
     {
-      stopB();
+      stopAnimation("STOP");
     }
     ISBTNB = false;
     ISBTNBHOLD = false;
@@ -311,16 +324,20 @@ void clearToSHADER()
 String getContentType(String filename)
 {
   if (filename.endsWith(".html")) return "text/html";
-  else if (filename.endsWith(".bmp")) return "image/bmp";
-  else if (filename.endsWith(".png")) return "image/png";
-  else if (filename.endsWith(".js")) return "application/javascript";
-  else if (filename.endsWith(".css")) return "text/css";
+  if (filename.endsWith(".bmp")) return "image/bmp";
+  if (filename.endsWith(".png")) return "image/png";
+  if (filename.endsWith(".js")) return "application/javascript";
+  if (filename.endsWith(".css")) return "text/css";
+  if (filename.endsWith(".json")) return "application/json";
   return "text/plain";
 }
 
 //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-String systemRead()
+t_httpAnswer systemRead()
 {
+  // New httpAnswer
+  t_httpAnswer httpAnswer;
+  
   // New json document
   StaticJsonDocument<500> jsonDoc;
 
@@ -332,25 +349,26 @@ String systemRead()
   jsonDoc["freeBytes"] = fs_info.totalBytes-fs_info.usedBytes;
   jsonDoc["numPixels"] = NUMPIXELS;
 
-  // Convert json document to String and return it
-  String systemParameter = "";
-  serializeJson(jsonDoc, systemParameter);
-  return systemParameter;
+  // Build httpAnswer and return it
+  httpAnswer.statusCode = 200;
+  httpAnswer.contentType = "application/json";
+  serializeJson(jsonDoc, httpAnswer.contentData);
+  return httpAnswer;
 }
 
 //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 void handleSystemRead()
 {
-  // Read system parameter
-  String systemParameter = systemRead();
-
-  // System parameter are read
-  server.send(200, "application/json", systemParameter);
+  t_httpAnswer httpAnswer = systemRead();
+  server.send(httpAnswer.statusCode, httpAnswer.contentType, httpAnswer.contentData);
 }
 
 //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-String bitmapRead()
+t_httpAnswer bitmapRead()
 {
+  // New httpAnswer
+  t_httpAnswer httpAnswer;
+  
   // New json document
   StaticJsonDocument<500> jsonDoc;
   
@@ -362,25 +380,26 @@ String bitmapRead()
   jsonDoc["bmpPath"] = BMPPATH;
   jsonDoc["isbmpload"] = ISBMPLOAD;
   
-  // convert json document to String and return it
-  String bitmapParameter = "";
-  serializeJson(jsonDoc, bitmapParameter);
-  return bitmapParameter;
+  // Build httpAnswer and return it
+  httpAnswer.statusCode = 200;
+  httpAnswer.contentType = "application/json";
+  serializeJson(jsonDoc, httpAnswer.contentData);
+  return httpAnswer;
 }
 
 //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 void handleBitmapRead()
 {
-  // read the bitmap parameter
-  String bitmapParameter = bitmapRead();
-
-  // Bitmap parameter are read
-  server.send(200, "application/json", bitmapParameter);
+  t_httpAnswer httpAnswer = bitmapRead();
+  server.send(httpAnswer.statusCode, httpAnswer.contentType, httpAnswer.contentData);
 }
 
 //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-void bitmapWrite(String stringParameter)
+t_httpAnswer bitmapWrite(String stringParameter)
 {
+  // New httpAnswer
+  t_httpAnswer httpAnswer;
+  
   // New json document
   StaticJsonDocument<500> jsonDoc;
 
@@ -390,15 +409,21 @@ void bitmapWrite(String stringParameter)
   // Json not right ?
   if (error)
   {
-    // Error wrong json
-    return server.send(500, "text/html", "BITMAP WRITE ERROR : WRONG JSON");
+    // Build httpAnswer and return it
+    httpAnswer.statusCode = 500;
+    httpAnswer.contentType = "text/plain";
+    httpAnswer.contentData = "BITMAP WRITE ERROR : WRONG JSON";
+    return httpAnswer;
   }
 
   // Running or paused animation ?
   if (ANIMATIONS.IsAnimationActive(0) || ANIMATIONS.IsPaused())
   {
-    // Error not available
-    return server.send(403, "text/html", "BITMAP WRITE ERROR : NOT AVAILABLE");
+    // Build httpAnswer and return it
+    httpAnswer.statusCode = 403;
+    httpAnswer.contentType = "text/plain";
+    httpAnswer.contentData = "BITMAP WRITE ERROR : NOT AVAILABLE";
+    return httpAnswer;
   }
 
   // Write parameter in the ESP8266
@@ -421,20 +446,26 @@ void bitmapWrite(String stringParameter)
     INDEXSTOP = INDEXMAX;
   }
 
-  // Parameter are write
-  server.send(200, "text/html",  "BITMAP WRITE SUCCESS");
+  // Build httpAnswer and return it
+  httpAnswer.statusCode = 200;
+  httpAnswer.contentType = "text/plain";
+  httpAnswer.contentData = "BITMAP WRITE SUCCESS";
+  return httpAnswer;
 }
 
 //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 void handleBitmapWrite()
 {
-  // Write parameter
-  bitmapWrite(server.arg("plain"));
+  t_httpAnswer httpAnswer = bitmapWrite(server.arg("plain"));
+  server.send(httpAnswer.statusCode, httpAnswer.contentType, httpAnswer.contentData);
 }
 
 //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-String parameterRead()
+t_httpAnswer parameterRead()
 {
+  // New httpAnswer
+  t_httpAnswer httpAnswer;
+  
   // New json document
   StaticJsonDocument<600> jsonDoc;
 
@@ -464,44 +495,55 @@ String parameterRead()
   jsonDoc["isendoff"] = ISENDOFF;
   jsonDoc["isendcolor"] = ISENDCOLOR;
 
-  // convert json document to String and return it
-  String parameter = "";
-  serializeJson(jsonDoc, parameter);
-  return parameter;
+  // Build httpAnswer and return it
+  httpAnswer.statusCode = 200;
+  httpAnswer.contentType = "application/json";
+  serializeJson(jsonDoc, httpAnswer.contentData);
+  return httpAnswer;
 }
 
 //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 void handleParameterRead()
 {
-  // read the parameter
-  String parameter = parameterRead();
+  t_httpAnswer httpAnswer = parameterRead();
+  server.send(httpAnswer.statusCode, httpAnswer.contentType, httpAnswer.contentData);
+}
 
-  // Parameter are read
-  server.send(200, "application/json", parameter);
+//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+t_httpAnswer parameterSave(String configPath)
+{
+  // New httpAnswer
+  t_httpAnswer httpAnswer;
+  
+  // Create or open configPath
+  File configFile = LittleFS.open(configPath, "w");
+
+  // Read and Save parameter in configFile
+  configFile.print(parameterRead().contentData);
+
+  // Close configFile
+  configFile.close();
+
+  // Build httpAnswer and return it
+  httpAnswer.statusCode = 200;
+  httpAnswer.contentType = "text/plain";
+  httpAnswer.contentData = "PARAMETER SAVE SUCCESS";
+  return httpAnswer;
 }
 
 //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 void handleParameterSave()
 {
-  // read the parameter
-  String parameter = parameterRead();
-
-  // Create or open CONFIGPATH
-  File configFile = LittleFS.open(CONFIGPATH, "w");
-
-  // Save parameter in configFile
-  configFile.print(parameter);
-
-  // Close configFile
-  configFile.close();
-
-  // Parameter are save
-  server.send(200, "text/html",  "PARAMETER SAVE SUCCESS");
+  t_httpAnswer httpAnswer = parameterSave(CONFIGPATH);
+  server.send(httpAnswer.statusCode, httpAnswer.contentType, httpAnswer.contentData);
 }
 
 //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-void parameterWrite(String stringParameter)
+t_httpAnswer parameterWrite(String stringParameter)
 {
+  // New httpAnswer
+  t_httpAnswer httpAnswer;
+  
   // New json document
   StaticJsonDocument<600> jsonDoc;
 
@@ -511,15 +553,21 @@ void parameterWrite(String stringParameter)
   // Json not right ?
   if (error)
   {
-    // Error wrong json
-    return server.send(500, "text/html", "PARAMETER WRITE ERROR : WRONG JSON");
+    // Build httpAnswer and return it
+    httpAnswer.statusCode = 500;
+    httpAnswer.contentType = "text/plain";
+    httpAnswer.contentData = "PARAMETER WRITE ERROR : WRONG JSON";
+    return httpAnswer;
   }
 
   // Running or paused animation ?
   if (ANIMATIONS.IsAnimationActive(0) || ANIMATIONS.IsPaused())
   {
-    // Error not available
-    return server.send(403, "text/html", "PARAMETER WRITE ERROR : NOT AVAILABLE");
+    // Build httpAnswer and return it
+    httpAnswer.statusCode = 403;
+    httpAnswer.contentType = "text/plain";
+    httpAnswer.contentData = "PARAMETER WRITE ERROR : NOT AVAILABLE";
+    return httpAnswer;
   }
 
   // Write parameter in the ESP8266
@@ -546,48 +594,92 @@ void parameterWrite(String stringParameter)
   if (!jsonDoc["isendoff"].isNull()) ISENDOFF = jsonDoc["isendoff"];
   if (!jsonDoc["isendcolor"].isNull()) ISENDCOLOR = jsonDoc["isendcolor"];
 
-  // Parameter are write
-  server.send(200, "text/html",  "PARAMETER WRITE SUCCESS");
+  // Build httpAnswer and return it
+  httpAnswer.statusCode = 200;
+  httpAnswer.contentType = "text/plain";
+  httpAnswer.contentData = "PARAMETER WRITE SUCCESS";
+  return httpAnswer;
 }
 
 //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 void handleParameterWrite()
 {
+  t_httpAnswer httpAnswer = parameterWrite(server.arg("plain"));
+  server.send(httpAnswer.statusCode, httpAnswer.contentType, httpAnswer.contentData);
+}
+
+//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+t_httpAnswer parameterRestore(String configPath)
+{
+  // New httpAnswer
+  t_httpAnswer httpAnswer;
+  
+  // check if file at configPath exists
+  if (!LittleFS.exists(configPath))
+  {
+    // Build httpAnswer and return it
+    httpAnswer.statusCode = 404;
+    httpAnswer.contentType = "text/plain";
+    httpAnswer.contentData = "RESTORE ERROR : CONFIGFILE NOT FOUND";
+    return httpAnswer;
+  }
+  
+  // Open configPath
+  File configFile = LittleFS.open(configPath, "r");
+
+  // Read configFile
+  String configString;
+  while (configFile.available()) configString += char(configFile.read());
+  
+  // Close configFile
+  configFile.close();
+
   // Write parameter
-  parameterWrite(server.arg("plain"));
+  return parameterWrite(configString);
 }
 
 //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 void handleParameterRestore()
 {
-  // Open CONFIGPATH
-  File configFile = LittleFS.open(CONFIGPATH, "r");
-
-  // read configFile
-  String configString;
-  while (configFile.available())
-  {
-    configString += char(configFile.read());
-  }
-
-  // Close configFile
-  configFile.close();
-
-  // Write parameter
-  parameterWrite(configString);
+  t_httpAnswer httpAnswer = parameterRestore(CONFIGPATH);
+  server.send(httpAnswer.statusCode, httpAnswer.contentType, httpAnswer.contentData);
 }
 
 //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-void handleFileDelete()
+void handleParameterDefault()
 {
+  t_httpAnswer httpAnswer = parameterRestore(DEFAULTPATH);
+  server.send(httpAnswer.statusCode, httpAnswer.contentType, httpAnswer.contentData);
+}
+
+//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+t_httpAnswer fileDelete()
+{
+  // New httpAnswer
+  t_httpAnswer httpAnswer;
+  
   // parse file from request
   String path = server.arg("plain");
 
   // protect system files
-  if ( path == "" || path == "/" || path == "config.json" || path == "index.html" || path == "css" || path == "js" || path == "title.png") return server.send(500, "text/plain", "DELETE ERROR : SYSTEM FILE");
+  if ( path == "" || path == "/" || path == CONFIGPATH || path == DEFAULTPATH || path == "index.html" || path == "css" || path == "js" || path == "title.png")
+  {
+    // Build httpAnswer and return it
+    httpAnswer.statusCode = 500;
+    httpAnswer.contentType = "text/plain";
+    httpAnswer.contentData = "DELETE ERROR : SYSTEM FILE";
+    return httpAnswer;
+  }
 
   // check if the file exists
-  if (!LittleFS.exists(path)) return server.send(404, "text/plain", "DELETE ERROR : FILE NOT FOUND");
+  if (!LittleFS.exists(path))
+  {
+    // Build httpAnswer and return it
+    httpAnswer.statusCode = 404;
+    httpAnswer.contentType = "text/plain";
+    httpAnswer.contentData = "DELETE ERROR : FILE NOT FOUND";
+    return httpAnswer;
+  }
 
   // if delete current bitmap onload it
   if ( path == BMPPATH)
@@ -599,8 +691,18 @@ void handleFileDelete()
   // Delete the file
   LittleFS.remove(path);
 
-  // File is delete
-  server.send(200, "text/plain", "DELETE SUCCESS");
+  // Build httpAnswer and return it
+  httpAnswer.statusCode = 200;
+  httpAnswer.contentType = "text/plain";
+  httpAnswer.contentData = "DELETE SUCCESS";
+  return httpAnswer;
+}
+
+//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+void handleFileDelete()
+{
+  t_httpAnswer httpAnswer = fileDelete();
+  server.send(httpAnswer.statusCode, httpAnswer.contentType, httpAnswer.contentData);
 }
 
 //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
@@ -631,14 +733,9 @@ void handleFileUpload()
   // Upload start
   if (upload.status == UPLOAD_FILE_START)
   {
+    // Retrieve and correct filname
     String filename = upload.filename;
     if (!filename.startsWith("/")) filename = "/" + filename;
-
-    //check if the file already exist
-    //if (LittleFS.exists(filename))
-    //{
-    //  return server.send(500, "text/plain", "UPLOAD ERROR : FILE ALREADY EXIST");
-    //}
 
     // Open the file for writing in LittleFS (create if it doesn't exist)
     UPLOADFILE = LittleFS.open(filename, "w");
@@ -660,8 +757,11 @@ void handleFileUpload()
 }
 
 //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-void handleFileList()
+t_httpAnswer fileList()
 {
+  // New httpAnswer
+  t_httpAnswer httpAnswer;
+  
   // Assuming there are no subdirectories
   fs::Dir dir = LittleFS.openDir("/");
 
@@ -681,32 +781,31 @@ void handleFileList()
     String name = String(entry.name());
 
     // Write the entry in the list (Hide system file)
-    if (!(name == "config.json" || name == "index.html" || name == "css" || name == "js" || name == "title.png")) fileList.add(name);
+    if (!(name == CONFIGPATH ||name == DEFAULTPATH || name == "index.html" || name == "css" || name == "js" || name == "title.png")) fileList.add(name);
 
     // Close the entry
     entry.close();
   }
 
-  // convert json document to String
-  String msg = "";
-  serializeJson(jsonDoc, msg);
-
-  // Parameter are read
-  server.send(200, "application/json", msg);
+  // Build httpAnswer and return it
+  httpAnswer.statusCode = 200;
+  httpAnswer.contentType = "application/json";
+  serializeJson(jsonDoc, httpAnswer.contentData);
+  return httpAnswer;
 }
 
 //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-void handlePlay()
+void handleFileList()
 {
-  String htmlMsg = play();
-  server.send(200, "text/plain", htmlMsg);
+  t_httpAnswer httpAnswer = fileList();
+  server.send(httpAnswer.statusCode, httpAnswer.contentType, httpAnswer.contentData);
 }
 
 //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-String play()
+t_httpAnswer play()
 {
-  // Html msg
-  String htmlMsg = "";
+  // New httpAnswer
+  t_httpAnswer httpAnswer;
 
   // Animation is paused : resume it
   if (ANIMATIONS.IsPaused())
@@ -714,12 +813,15 @@ String play()
     // Resume animation
     ANIMATIONS.Resume();
 
-    // Animation is resume
-    htmlMsg = "RESUME";
+    // Build httpAnswer and return it
+    httpAnswer.statusCode = 200;
+    httpAnswer.contentType = "text/plain";
+    httpAnswer.contentData = "RESUME";
+    return httpAnswer;
   }
   
   // Animation is active : pause it
-  else if (ANIMATIONS.IsAnimationActive(0))
+  if (ANIMATIONS.IsAnimationActive(0))
   {
     // Pause animation
     ANIMATIONS.Pause();
@@ -728,89 +830,89 @@ String play()
     if (ISENDOFF) STRIP.ClearTo(RgbColor(0, 0, 0));
     if (ISENDCOLOR) clearToSHADER();
 
-    // Animation is paused
-    htmlMsg = "PAUSE";
+    // Build httpAnswer and return it
+    httpAnswer.statusCode = 200;
+    httpAnswer.contentType = "text/plain";
+    httpAnswer.contentData = "PAUSE";
+    return httpAnswer;
   }
   
   // No animation : start a new one
-  else
-  {
-    // Invert initialization
-    ISINVERTTEMP = ISINVERT;
+  // Invert initialization
+  ISINVERTTEMP = ISINVERT;
 
-    // Repeat counter initialization
-    REPEATCOUNTER = REPEAT;
+  // Repeat counter initialization
+  REPEATCOUNTER = REPEAT;
 
-    // Cut counter initialization
-    VCUTCOUNTER = 2 * VCUT;
+  // Cut counter initialization
+  VCUTCOUNTER = 2 * VCUT;
 
-    // Index initialization
-    if (ISINVERTTEMP) INDEX = INDEXSTOP;
-    else INDEX = INDEXSTART;
+  // Index initialization
+  if (ISINVERTTEMP) INDEX = INDEXSTOP;
+  else INDEX = INDEXSTART;
 
-    // Launch a new animation
-    ANIMATIONS.StartAnimation(0, DELAY, updateAnimation);
+  // Launch a new animation
+  ANIMATIONS.StartAnimation(0, DELAY, updateAnimation);
 
-    // New animation is launch
-    htmlMsg = "PLAY";
-  }
+  // Build httpAnswer and return it
+  httpAnswer.statusCode = 200;
+  httpAnswer.contentType = "text/plain";
+  httpAnswer.contentData = "PLAY";
+  return httpAnswer;
+}
+
+//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+void handlePlay()
+{
+  t_httpAnswer httpAnswer = play();
+  server.send(httpAnswer.statusCode, httpAnswer.contentType, httpAnswer.contentData);
+}
+
+//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+t_httpAnswer stopAnimation(String action)
+{
+  // New httpAnswer
+  t_httpAnswer httpAnswer;
   
-  //
-  return htmlMsg;
+  // Stop animation
+  ANIMATIONS.StopAnimation(0);
+  ANIMATIONS.Resume(); // remove the pause flag to stop paused animation
+
+  // Turn the strip to blank
+  if (action == "STOP") STRIP.ClearTo(RgbColor(0, 0, 0));
+
+  // Turn the strip to COLOR
+  if (action == "LIGHT") clearToSHADER();
+
+  // Turn the strip to the first column of BITMAP
+  if (action == "BURN") NEOBMPFILE.Render<BrightShader>(STRIP, SHADER, 0, 0, INDEXSTART, NEOBMPFILE.Width());
+
+  // Build httpAnswer and return it
+  httpAnswer.statusCode = 200;
+  httpAnswer.contentType = "text/plain";
+  httpAnswer.contentData = action;
+  return httpAnswer;
 }
 
 //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 void handleStop()
 {
-  stopB();
-  server.send(200, "text/plain", "STOP");
-}
-
-//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-void stopB()
-{
-  // Stop animation
-  ANIMATIONS.StopAnimation(0);
-  ANIMATIONS.Resume(); // remove the pause flag to stop paused animation
-
-  // Turn off the strip
-  STRIP.ClearTo(RgbColor(0, 0, 0));
+  t_httpAnswer httpAnswer = stopAnimation("STOP");
+  server.send(httpAnswer.statusCode, httpAnswer.contentType, httpAnswer.contentData);
 }
 
 //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 void handleLight()
 {
-  light();
-  server.send(200, "text/plain", "LIGHT");
-}
-
-//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-void light()
-{
-  // Stop animation
-  ANIMATIONS.StopAnimation(0);
-  ANIMATIONS.Resume(); // remove the pause flag to stop paused animation
-
-  //turn on the strip
-  clearToSHADER();
+  t_httpAnswer httpAnswer = stopAnimation("LIGHT");
+  server.send(httpAnswer.statusCode, httpAnswer.contentType, httpAnswer.contentData);
 }
 
 //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 void handleBurn()
 {
-  burn();
-  server.send(200, "text/plain", "BURN");
-}
-
-//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-void burn()
-{
-  // Stop animation
-  ANIMATIONS.StopAnimation(0);
-  ANIMATIONS.Resume(); // remove the pause flag to stop paused animation
-
-  //turn on the strip
-  NEOBMPFILE.Render<BrightShader>(STRIP, SHADER, 0, 0, INDEXSTART, NEOBMPFILE.Width());
+  t_httpAnswer httpAnswer = stopAnimation("BURN");
+  server.send(httpAnswer.statusCode, httpAnswer.contentType, httpAnswer.contentData);
 }
 
 //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
