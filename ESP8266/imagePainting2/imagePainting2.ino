@@ -279,7 +279,7 @@ void loop()
   {
     if ((millis() - BTNATIMER > DEBOUNCETIME) && (!ISBTNAHOLD))
     {
-      play();
+      playAnimation();
     }
     ISBTNA = false;
     ISBTNAHOLD = false;
@@ -802,7 +802,7 @@ void handleFileList()
 }
 
 //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-t_httpAnswer play()
+t_httpAnswer playAnimation()
 {
   // New httpAnswer
   t_httpAnswer httpAnswer;
@@ -864,7 +864,7 @@ t_httpAnswer play()
 //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 void handlePlay()
 {
-  t_httpAnswer httpAnswer = play();
+  t_httpAnswer httpAnswer = playAnimation();
   server.send(httpAnswer.statusCode, httpAnswer.contentType, httpAnswer.contentData);
 }
 

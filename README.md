@@ -1,5 +1,7 @@
 # ImagePainting2
 
+**WARNING :** This is an old and unsupported version. New version can be found at [ImagePainting3](https://github.com/jbreizh/ImagePainting3)
+
 ## Introduction
 
 ![DSCN1062](https://github.com/jbreizh/imagepainting2/assets/2498942/7e9e492f-5bf0-4190-b320-43653a29ce49)
